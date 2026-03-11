@@ -40,6 +40,36 @@ class AuthService {
         return { newUser, token };
         
     }
+
+    async signIn(data) {
+        try {
+            // 1) extract login credentials
+            const { email, password } = data;
+
+            // 2) find user from database
+            const user = await this.userRepository.findByEmail(email);
+            if (!user) {
+                throw new Error("No user exists with this email.")
+            }
+
+            // 3) compare password with hashed password stored in the database -> bcrypt
+            // 2nd argument -> hashed password stored in DB
+            const comparePassword = await bcrypt.compare(password, user.password);
+            if (!comparePassword) {
+                throw new Error("Wrong passsword enterrd by user!")
+            }
+
+            // 4) create JWT token -> synchronous function -> no await needed
+            const token = JWT.sign({ id: user._id, email: user.email }, SECRET_TOKEN, { expiresIn: EXPIRES_IN });
+
+            // 5) removed password
+            user.password = undefined;
+
+            return { user, token };
+        } catch (error) {
+            throw new Error(error.message);
+        }
+    }
 }
 
 module.exports = AuthService;
