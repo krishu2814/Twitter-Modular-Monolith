@@ -1,6 +1,7 @@
 const UserRepository = require('../user/user-repository');
 const bcrypt = require('bcrypt');
-const { genSaltRounds } = require('../../config/serverConfig')
+const { SALT_ROUNDS, SECRET_TOKEN, EXPIRES_IN } = require('../../config/serverConfig');
+const JWT = require('jsonwebtoken');
 
 
 class AuthService {
@@ -21,7 +22,8 @@ class AuthService {
         };
 
         // 3) hash the password
-        const hashedPassword = await bcrypt.hash(password, genSaltRounds);
+        const salt = await bcrypt.genSalt(SALT_ROUNDS);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         // 4) create user after hashing password
         const newUser = await this.userRepository.createUser({
@@ -29,8 +31,14 @@ class AuthService {
             email,
             password: hashedPassword
         });
-        console.log(newUser);
-        return newUser;
+
+        // 5) create JWT token -> synchronous function -> no await needed
+        const token = JWT.sign({ id: newUser._id, email: newUser.email }, SECRET_TOKEN, { expiresIn: EXPIRES_IN });
+
+        // 6) remove password before sending new user
+        newUser.password = undefined;
+        return { newUser, token };
+        
     }
 }
 
