@@ -24,6 +24,13 @@ class UserRepository {
   async deleteUser(id) {
     return await User.findByIdAndDelete(id);
   }
+    
+    async findByEmail(email) {
+        return await User.findOne({
+            // email: email,
+            email // ES6
+        }).select("+password");
+    }
 
 }
 

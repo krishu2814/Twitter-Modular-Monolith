@@ -10,18 +10,18 @@ const userController = new UserController();
  */
 
 // create user
-router.post('/users', userController.create.bind(userController));
+router.post('/', userController.create.bind(userController));
 
 // get all users
-router.get('/users', userController.getAll.bind(userController));
+router.get('/', userController.getAll.bind(userController));
 
 // get user by id
-router.get('/users/:id', userController.get.bind(userController));
+router.get('/:id', userController.get.bind(userController));
 
 // update user
-router.patch('/users/:id', userController.update.bind(userController));
+router.patch('/:id', userController.update.bind(userController));
 
 // delete user
-router.delete('/users/:id', userController.delete.bind(userController));
+router.delete('/:id', userController.delete.bind(userController));
 
 module.exports = router;
