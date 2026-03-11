@@ -1,8 +1,8 @@
-const User = require('./user.model');
+const User = require('./user-model');
 
 class UserRepository {
 
-  async createUser(data) {
+    async createUser(data) {
     return await User.create(data);
   }
 
@@ -27,4 +27,4 @@ class UserRepository {
 
 }
 
-module.exports = new UserRepository();
+module.exports = UserRepository;

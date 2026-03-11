@@ -1,13 +1,11 @@
-const express = require('express');
 const { PORT } = require('./config/serverConfig');
 const connectDB = require('./config/database');
+const app = require('./app');
 
-const app = express();
-
-const setUpAndStartServer = () => {
+const setUpAndStartServer = async() => {
 
     // 1) connect to datatbase
-    connectDB();
+    await connectDB();
 
     // 2) start the server
     app.listen(PORT, () => {
