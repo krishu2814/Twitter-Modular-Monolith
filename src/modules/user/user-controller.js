@@ -6,6 +6,7 @@ class UserController {
     }
 
     async create(req, res) {
+        
         try {
             const user = await this.userService.create(req.body);
 
