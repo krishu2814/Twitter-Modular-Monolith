@@ -33,6 +33,7 @@ const isUserAuthentic = async (req, res, next) => {
         user.password = undefined;
 
         // 5) MOST IMPORTANT💥
+        // in toggle like -> we need user.id -> req.user.id(id of authentic user)
         req.user = user; // attach user to request
 
         next();
