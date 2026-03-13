@@ -35,6 +35,34 @@ class UserRepository {
             email // ES6
         }).select("+password");
     }
+    async decrementFollowing(followerId) {
+        return await User.findByIdAndUpdate(
+            followerId,
+            { $inc: { followingCount: -1 } }, // decrement followingCount by 1
+            { new: true } // return updated user
+        );
+    }
+    async incrementFollowing(followerId) {
+        return await User.findByIdAndUpdate(
+            followerId,
+            { $inc: { followingCount: 1 } }, // increment followingCount by 1
+            { new: true},
+        )
+    }
+    async decrementFollowers(followingId) {
+        return await User.findByIdAndUpdate(
+            followingId,
+            { $inc: { followersCount: -1 } }, // decrement followersCount by 1
+            { new: true }
+        );
+    }
+    async incrementFollowers(followingId) {
+        return await User.findByIdAndUpdate(
+            followingId,
+            { $inc: { followersCount: 1 } }, // increment followersCount by 1
+            { new: true }
+        );
+    }
 
 }
 
