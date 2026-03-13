@@ -5,6 +5,6 @@ const authentication = require('../../middlewares/auth-middleware');
 const LikeController = require('../../modules/like/like-controller');
 const likeController = new LikeController();
 
-router.post('/:tweetId', authentication, likeController.toggle.bind(likeController));
+router.post('/:tweetId', authentication, likeController.toggle.bind(likeController)); // Need JWT, tweetId
 
 module.exports = router;
