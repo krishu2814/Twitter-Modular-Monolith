@@ -1,4 +1,5 @@
 const Like = require('../../modules/like/like-model');
+const Tweet = require('../tweet/tweet-model');
 
 class LikeRepository {
     async create(data) {
@@ -30,6 +31,23 @@ class LikeRepository {
             user: userId
         });
     }
+
+    async incrementTweetLikes(tweetId, session) {
+        return await Tweet.findByIdAndUpdate(
+            tweetId,
+            { $inc: { likesCount: 1 } },
+            { new: true, session }
+        );
+    }
+
+    async decrementTweetLikes(tweetId, session) {
+        return await Tweet.findByIdAndUpdate(
+            tweetId,
+            { $inc: { likesCount: -1 } },
+            { new: true, session }
+        );
+    }
+
 }
 
 module.exports = LikeRepository;
