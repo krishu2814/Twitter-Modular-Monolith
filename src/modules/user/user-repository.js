@@ -22,7 +22,8 @@ class UserRepository {
         return await User.findByIdAndUpdate(
             id,
             data,
-        { new: true }); // to get updated data
+            { new: true } // return updated data
+        );
     }
 
     async deleteUser(id) {
@@ -30,37 +31,40 @@ class UserRepository {
     }
     
     async findByEmail(email) {
-        return await User.findOne({
-            // email: email,
-            email // ES6
-        }).select("+password");
+        return await User.findOne({ email }).select("+password");
     }
-    async decrementFollowing(followerId) {
+
+    // ---- Followers/Following counts ----
+    // Session is only needed when called inside FollowService transaction
+    async decrementFollowing(userId, session = null) {
         return await User.findByIdAndUpdate(
-            followerId,
-            { $inc: { followingCount: -1 } }, // decrement followingCount by 1
-            { new: true } // return updated user
+            userId,
+            { $inc: { followingCount: -1 } },
+            { new: true, session }
         );
     }
-    async incrementFollowing(followerId) {
+
+    async incrementFollowing(userId, session = null) {
         return await User.findByIdAndUpdate(
-            followerId,
-            { $inc: { followingCount: 1 } }, // increment followingCount by 1
-            { new: true},
-        )
-    }
-    async decrementFollowers(followingId) {
-        return await User.findByIdAndUpdate(
-            followingId,
-            { $inc: { followersCount: -1 } }, // decrement followersCount by 1
-            { new: true }
+            userId,
+            { $inc: { followingCount: 1 } },
+            { new: true, session }
         );
     }
-    async incrementFollowers(followingId) {
+
+    async decrementFollowers(userId, session = null) {
         return await User.findByIdAndUpdate(
-            followingId,
-            { $inc: { followersCount: 1 } }, // increment followersCount by 1
-            { new: true }
+            userId,
+            { $inc: { followersCount: -1 } },
+            { new: true, session }
+        );
+    }
+
+    async incrementFollowers(userId, session = null) {
+        return await User.findByIdAndUpdate(
+            userId,
+            { $inc: { followersCount: 1 } },
+            { new: true, session }
         );
     }
 

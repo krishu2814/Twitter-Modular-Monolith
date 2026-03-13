@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const FollowRepository = require('./follow-repository');
 const UserRepository = require('../../modules/user/user-repository');
 
@@ -8,49 +9,57 @@ class FollowService {
     }
 
     async toggleFollow(followerId, followingId) {
+        const session = await mongoose.startSession(); // start transaction session
+        session.startTransaction();
+
         try {
             if (followerId === followingId) {
                 throw new Error('User cannot follow themselves.');
             }
 
-            /**
-             * If user ia already following
-             */
-            const existingFollow = await this.followRepository.findFollow(followerId, followingId);
+            // Check if already following
+            const existingFollow = await this.followRepository.findFollow(followerId, followingId, session);
             if (existingFollow) {
                 // UNFOLLOW
-                await this.followRepository.delete(existingFollow._id);
-                // decrement counts of both follower(who clicks FOLLOW button) and following
-                await this.userRepository.decrementFollowing(followerId);
-                await this.userRepository.decrementFollowers(followingId);
-                return { following: false }; // user is not following
+                await this.followRepository.delete(existingFollow._id, session);
+                await this.userRepository.decrementFollowing(followerId, session);
+                await this.userRepository.decrementFollowers(followingId, session);
+
+                await session.commitTransaction();
+                session.endSession();
+
+                return { following: false };
             }
 
-            /**
-             * If user is not following
-             * FOLLOW
-             */
-            const follow = await this.followRepository.create({
+            // FOLLOW
+            await this.followRepository.create({
                 follower: followerId,
                 following: followingId
-            });
-            // increment counts
-            await this.userRepository.incrementFollowing(followerId);
-            await this.userRepository.incrementFollowers(followingId);
+            }, session);
+
+            await this.userRepository.incrementFollowing(followerId, session);
+            await this.userRepository.incrementFollowers(followingId, session);
+
+            await session.commitTransaction();
+            session.endSession();
+
             return { following: true };
+
         } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
             throw error;
         }
     }
 
     async getFollowers(userId) {
-        return await this.followRepository.getFollowers(userId)
+        return await this.followRepository.getFollowers(userId);
     }
 
     async getFollowing(userId) {
         return await this.followRepository.getFollowing(userId);
     }
-
+    
 }
 
 module.exports = FollowService;
