@@ -2,8 +2,8 @@ const Follow = require('./follow-model');
 
 class FollowRepository {
 
-    async create(data) {
-        return await Follow.create(data);
+    async create(data, session = null) {
+        return await Follow.create([data], {session});
     }
 
     async findFollow(followerId, followingId) {
@@ -13,8 +13,8 @@ class FollowRepository {
         });
     }
 
-    async delete(id) {
-        return await Follow.findByIdAndDelete(id);
+    async delete(id, session = null) {
+        return await Follow.findByIdAndDelete(id, { session });
     }
 
     /**
@@ -29,13 +29,21 @@ class FollowRepository {
     async getFollowers(userId) {
         return await Follow.find({
             following: userId // find where following = B
-        }).populate('follower', 'username email');
+        }).populate('follower', 'userName email');
     }
 
     async getFollowing(userId) {
         return await Follow.find({
             follower: userId // find where follower = A
-        }).populate('following', 'username email');
+        }).populate('following', 'userName email');
+    }
+
+    async getFollowingIds(userId) {
+        const following = await Follow.find({
+            follower: userId
+        }).select('following');
+
+        return following.map(f => f.following);
     }
 }
 
