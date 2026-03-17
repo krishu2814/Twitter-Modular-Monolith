@@ -59,6 +59,11 @@ class FollowService {
     async getFollowing(userId) {
         return await this.followRepository.getFollowing(userId);
     }
+
+    // REQUIRED FOR FEED MODULE
+    async getFollowingIds(userId) {
+        return await this.followRepository.getFollowingIds(userId);
+    }
     
 }
 
