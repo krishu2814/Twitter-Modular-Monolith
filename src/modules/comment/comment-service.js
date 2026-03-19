@@ -1,8 +1,11 @@
 const CommentRepository = require('./comment-repository');
+const TweetRepository = require('../tweet/tweet-repository');
+const { publishEvent } = require('../../utils/producer');
 
 class CommentService {
     constructor() {
         this.commentRepository = new CommentRepository();
+        this.tweetRepository = new TweetRepository();
     }
 
     async createComment(content, userId, tweetId) {
@@ -13,6 +16,20 @@ class CommentService {
                 user: userId,
                 tweet: tweetId
             });
+
+            const tweet = await this.tweetRepository.getTweetById(tweetId);
+            if (!tweet) {
+                throw new Error('Tweet not found');
+            }
+
+            if (tweet.author.toString() !== userId.toString()) {
+                await publishEvent({
+                    user: tweet.author.toString(),     // tweet owner
+                    actor: userId.toString(),          // commenter
+                    type: "COMMENT",
+                    entityId: comment._id.toString()
+                });
+            }
             return comment;
         } catch (error) {
             throw error;
@@ -30,7 +47,7 @@ class CommentService {
         }
 
         const commentOwner = comment.user.toString();
-        const tweetOwner = comment.tweet.user.toString();
+        const tweetOwner = comment.tweet.author.toString();
 
         /**
          * WHO CAN DELETE COMMENT

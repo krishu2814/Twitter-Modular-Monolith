@@ -14,8 +14,8 @@ const setUpAndStartServer = async() => {
     console.log('✅ RabbitMQ Connected');
 
     // 3️) Start Notification Consumer
-    // const consumer = new NotificationConsumer();
-    // await consumer.start();
+    const consumer = new NotificationConsumer();
+    await consumer.start();
     console.log('✅ Notification Consumer Started');
 
     // 2) start the server
