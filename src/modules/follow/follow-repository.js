@@ -3,7 +3,8 @@ const Follow = require('./follow-model');
 class FollowRepository {
 
     async create(data, session = null) {
-        return await Follow.create([data], {session});
+        const result = await Follow.create([data], {session});
+        return result[0];
     }
 
     async findFollow(followerId, followingId) {

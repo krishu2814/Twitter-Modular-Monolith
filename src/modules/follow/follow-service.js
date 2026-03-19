@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const FollowRepository = require('./follow-repository');
 const UserRepository = require('../../modules/user/user-repository');
+const { publishEvent } = require('../../utils/producer');
 
 class FollowService {
     constructor() {
@@ -32,7 +33,7 @@ class FollowService {
             }
 
             // FOLLOW
-            await this.followRepository.create({
+            const newFollow = await this.followRepository.create({
                 follower: followerId,
                 following: followingId
             }, session);
@@ -42,6 +43,18 @@ class FollowService {
 
             await session.commitTransaction();
             session.endSession();
+
+            // Publish FOLLOW event
+            try {
+                await publishEvent({
+                user: followingId.toString(),   // ALWAYS STRING
+                actor: followerId.toString(),  // ALWAYS STRING
+                type: "FOLLOW",
+                entityId: newFollow._id.toString() // ALWAYS STRING
+            });
+            } catch (error) {
+                console.error('❌ Failed to publish FOLLOW event:', error);
+            }
 
             return { following: true };
 
