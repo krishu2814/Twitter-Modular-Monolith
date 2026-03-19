@@ -27,14 +27,22 @@ class CommentRepository {
     }
 
     // find comments by tweet
-    async getCommentsByTweet(tweetId) {
+    async getCommentsByTweet(tweetId, page = 1, limit = 10) {
+        const skip = (page - 1) * limit;
         // populate user(only userName and Email) based on user's tweetId
-        return await Comment.find({
+        const comments = await Comment.find({
             tweet: tweetId
         })
-        .populate('user', 'userName email')
-        .populate('tweet', 'content author')
-        .sort({ createdAt: -1 }) 
+            .skip(skip)
+            .limit(limit)
+            .populate('user', 'userName email')
+            .populate('tweet', 'content author')
+            .sort({ createdAt: -1 });
+        const total = await Comment.countDocuments({ tweet: tweetId });
+        return {
+            comments,
+            total
+        };
     }
     
 }

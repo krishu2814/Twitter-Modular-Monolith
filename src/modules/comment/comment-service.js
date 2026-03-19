@@ -61,10 +61,24 @@ class CommentService {
         return await this.commentRepository.deleteComment(commentId);
     }
 
-    async getCommentByTweet(tweetId) {
-        try {
-            const comment = await this.commentRepository.getCommentsByTweet(tweetId);
-            return comment;
+    async getCommentByTweet(tweetId, page, limit) {
+    try {
+        const result = await this.commentRepository.getCommentsByTweet(
+            tweetId,
+            page,
+            limit
+        );
+
+        return {
+            comments: result.comments,
+            pagination: {
+                total: result.total,
+                page,
+                limit,
+                totalPages: Math.ceil(result.total / limit)
+            }
+        };
+
         } catch (error) {
             throw error;
         }

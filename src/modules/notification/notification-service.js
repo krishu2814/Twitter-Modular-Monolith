@@ -9,8 +9,18 @@ class NotificationService {
         return await this.notificationRepository.createNotification(data);
     }
 
-    async getNotifications(userId) {
-        return await this.notificationRepository.getNotifications(userId);
+    async getNotifications(userId, page, limit) {
+        const { notifications, total } = await this.notificationRepository.getNotifications(userId, page, limit);
+
+        return {
+            notifications,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
     }
 
     async markRead(notificationId) {

@@ -8,7 +8,11 @@ class NotificationController {
     async getNotifications(req, res) {
         try {
             const userId = req.user._id;
-            const notifications = await this.notificationService.getNotifications(userId);
+
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.min(50, parseInt(req.query.limit) || 10);
+            
+            const notifications = await this.notificationService.getNotifications(userId, page, limit);
             res.status(200).json({
                 status: "success",
                 message: "Notifications fetched",

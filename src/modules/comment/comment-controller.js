@@ -70,7 +70,10 @@ class CommentController {
 
             const { tweetId } = req.params;
 
-            const comments = await this.commentService.getCommentByTweet(tweetId);
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.min(50, parseInt(req.query.limit) || 10);
+
+            const comments = await this.commentService.getCommentByTweet(tweetId, page, limit);
 
             return res.status(200).json({
                 success: true,

@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 
 class FeedRepository {
 
+    // add pagination to it and suggest changes to feed controller as well
     async getFeedTweetsFromUser(userId, page = 1, limit = 20) {
         // 1. Convert to ObjectId
         const userObjectId = new mongoose.Types.ObjectId(userId);
@@ -26,7 +27,8 @@ class FeedRepository {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate('author', 'userName profileImage');
+        .populate('author', 'userName profileImage')
+        .lean();
 
         return feedTweets;
     }
