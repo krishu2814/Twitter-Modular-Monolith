@@ -118,6 +118,29 @@ class TweetController {
         }
     }
 
+    // get tweets by user
+    async getTweetsByUser(req, res) {
+        try {
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.min(50, parseInt(req.query.limit) || 10);
+
+            const result = await this.tweetService.getTweetsByUser(req.params.userId, page, limit);
+            return res.status(200).json({
+                status: "success",
+                message: "User tweets fetched successfully.",
+                data: result,
+                err: {}
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: "error",
+                message: error.message || "Something went wrong while fetching user tweets.",
+                data: {},
+                err: error
+            });
+        }
+    }
+
 }
 
 module.exports = TweetController;

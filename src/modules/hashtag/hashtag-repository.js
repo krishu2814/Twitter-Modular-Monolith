@@ -29,6 +29,19 @@ class HashtagRepository {
         );
     }
 
+    async getTrending(limit = 10) {
+        return await Hashtag.aggregate([
+            {
+                $project: {
+                    title: 1,
+                    tweetCount: { $size: "$tweets" }
+                }
+            },
+            { $sort: { tweetCount: -1 } },
+            { $limit: limit }
+        ]);
+    }
+
 }
 
 module.exports = HashtagRepository;

@@ -13,7 +13,7 @@ const notificationSchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['FOLLOW', 'LIKE', 'COMMENT', 'RETWEET'],
+        enum: ['FOLLOW', 'LIKE', 'COMMENT', 'RETWEET', 'MESSAGE'],
         required: true
     },
     entityId: {

@@ -99,6 +99,19 @@ class TweetService {
     async getAll() {
         return await this.tweetRepository.getAllTweets();
     }
+
+    async getTweetsByUser(userId, page = 1, limit = 10) {
+        const result = await this.tweetRepository.getTweetsByUser(userId, page, limit);
+        return {
+            tweets: result.tweets,
+            pagination: {
+                total: result.total,
+                page,
+                limit,
+                totalPages: Math.ceil(result.total / limit)
+            }
+        };
+    }
 }
 
 module.exports = TweetService;

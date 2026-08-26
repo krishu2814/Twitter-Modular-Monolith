@@ -74,6 +74,25 @@ class TweetRepository {
             { returnDocument: 'after', session }
         );
     }
+
+    async getTweetsByUser(userId, page = 1, limit = 10) {
+        const skip = (page - 1) * limit;
+        const tweets = await Tweet.find({ author: userId })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('author', 'userName profileImage bio')
+            .populate({
+                path: 'quoteTweet',
+                populate: {
+                    path: 'author',
+                    select: 'userName profileImage bio'
+                }
+            });
+
+        const total = await Tweet.countDocuments({ author: userId });
+        return { tweets, total };
+    }
 }
 
 module.exports = TweetRepository;

@@ -54,6 +54,13 @@ class HashService {
         }
     }
 
+    /**
+     * Get top trending hashtags
+     */
+    async getTrendingHashtags(limit = 10) {
+        return await this.hashtagRepository.getTrending(limit);
+    }
+
 }
 
 module.exports = HashService;

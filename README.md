@@ -63,6 +63,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 | **Hashtag** | Hashtag normalization, indexing, and querying tweets by hashtag |
 | **Feed** | Fan-out timeline generation for authenticated users |
 | **Search** | Case-insensitive keyword search for tweets and users with pagination |
+| **Message** | 1-on-1 Direct Messaging (DMs), conversation history, and read status |
 | **Notification** | Async consumption from RabbitMQ, mark single/all notifications as read |
 
 ---
@@ -81,6 +82,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `POST /api/v1/tweets/create` — Post a new tweet (Supports `#hashtags` & `quoteTweet: "id"`)
 * `GET /api/v1/tweets/get/:id` — Get single tweet with author and quoted tweet populated
 * `GET /api/v1/tweets/get` — Get all tweets
+* `GET /api/v1/tweets/user/:userId` — Get tweets authored by a specific user
 * `PATCH /api/v1/tweets/update/:id` — Update tweet content (Author only)
 * `DELETE /api/v1/tweets/delete/:id` — Delete tweet (Author only)
 
@@ -105,9 +107,16 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `DELETE /api/v1/comments/:commentId` — Delete comment (Comment owner or Tweet owner)
 
 ### 🏷️ Hashtags & 🔍 Search
+* `GET /api/v1/hashtags/trending` — Get top trending hashtags
 * `GET /api/v1/hashtags/:title` — Query tweets by hashtag
 * `GET /api/v1/search/tweets?q=nodejs` — Search tweets by keyword
 * `GET /api/v1/search/users?q=alice` — Search users by username or bio
+
+### ✉️ Direct Messages (DMs)
+* `POST /api/v1/messages/send` — Send a direct message (`receiverId`, `content`)
+* `GET /api/v1/messages/conversations` — Get list of recent chat conversations
+* `GET /api/v1/messages/conversation/:userId` — Get chat history with a specific user
+* `PATCH /api/v1/messages/:messageId/read` — Mark a message as read
 
 ### 🔔 Notifications
 * `GET /api/v1/notifications?page=1&limit=10` — List async notifications

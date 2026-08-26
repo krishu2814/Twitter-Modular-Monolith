@@ -14,6 +14,9 @@ router.get('/', tweetController.getAll.bind(tweetController));
 // get tweet by id
 router.get('/get/:id', tweetController.get.bind(tweetController));
 
+// get tweets by user
+router.get('/user/:userId', tweetController.getTweetsByUser.bind(tweetController));
+
 // update tweet
 router.patch('/update/:id', authentication, tweetController.update.bind(tweetController));
 
