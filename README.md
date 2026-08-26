@@ -1,6 +1,13 @@
 # 🐦 Twitter Modular Monolith Backend
 
-A production-grade, event-driven **Twitter backend** built with **Node.js**, **Express**, **MongoDB**, and **RabbitMQ** using a **Modular Monolith Architecture**.
+[![Node.js](https://img.shields.io/badge/Node.js-v18+-green.svg?logo=node.js)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.x-black.svg?logo=express)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-6.0+-brightgreen.svg?logo=mongodb)](https://www.mongodb.com/)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-AMQP-orange.svg?logo=rabbitmq)](https://www.rabbitmq.com/)
+[![Tests](https://img.shields.io/badge/Tests-129%20Passing%20(100%25)-success.svg)](https://github.com/krishu2814/Twitter-Modular-Monolith)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+A production-grade, event-driven **Twitter backend** engineered as a **Modular Monolith** using **Node.js**, **Express**, **MongoDB (ACID Transactions)**, and **RabbitMQ (AMQP Message Broker)**.
 
 ---
 
@@ -38,44 +45,50 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
                                                            +---------------------+
 ```
 
-### Key Engineering Features:
-* **4-Layer Modular Architecture**: Strict separation of concerns — `Routes` $\to$ `Controllers` $\to$ `Services` $\to$ `Repositories` $\to$ `Models`.
-* **ACID Transactions**: Multi-document transactional integrity for Likes, Retweets, Follows, and Bookmarks using `mongoose.startSession()`.
-* **Event-Driven Asynchronous Notifications**: Decoupled event publishing via **RabbitMQ** (`NOTIFICATION` direct exchange, durable queues, manual ACK consumer).
-* **Fan-out Feed Aggregation**: Timeline generation aggregating tweets and quote tweets from followed creators plus self.
-* **Auto Hashtag & Mention Extraction**: Automatic regex parsing for `#hashtags` and `@user` mentions with asynchronous notification dispatches.
-* **Threaded Comment Conversations**: Parent-child comment threading with cascade deletion and atomic counter synchronizations.
-* **Pinned Profile Tweets**: Support for pinning a featured tweet to the top of the user profile.
-* **Interactive Tweet Polls**: Create 2-4 option polls with single-vote enforcement, real-time tallying, and expiration dates.
+### ⚡ Key Architectural Highlights:
+* **4-Layer Clean Architecture**: Domain isolation enforcing `Routes` $\to$ `Controllers` $\to$ `Services` $\to$ `Repositories` $\to$ `Models`.
+* **Multi-Document ACID Transactions**: Distributed concurrency control for Follows, Likes, Retweets, Bookmarks, and Mutual Block Severing via `mongoose.startSession()`.
+* **Event-Driven Asynchronous Processing**: Decoupled message broker via **RabbitMQ** for 6 event types (`LIKE`, `RETWEET`, `FOLLOW`, `COMMENT`, `MENTION`, `MESSAGE`) with dedicated worker consumers.
+* **Graph-Based Social Discovery**: 2nd-degree network recommendation algorithm (*"Who to Follow"*) ranking candidates by mutual connections with popularity backfills.
+* **Curated Multi-Timeline Feeds**:
+  * **Home Feed**: Fan-out timeline aggregating tweets and quote tweets with stealth mute & block suppression.
+  * **Verified Feed**: Filtered timeline exclusively showcasing tweets by verified creators (`isVerified: true`).
+  * **List Feed**: Dedicated feeds composed strictly of selected list members.
+* **Scheduled Tweets & Auto-Publisher**: Future tweet scheduling engine with automated background execution to live feeds.
+* **Bookmark Collections & Folders**: Organized private saved tweets with custom colors, icons, and metadata.
+* **Interactive Tweet Polls**: Multi-option voting polls with single-vote enforcement, real-time percentages, and expiration limits.
+* **Content Moderation & Auto-Flagging**: User reporting lifecycle with automated threshold flagging ($\ge 3$ reports) and administrator take-down actions.
+* **Threaded Discussions**: Parent-child comment trees with recursive cascade deletion and atomic counter synchronization.
+* **Direct Messaging (DMs)**: 1-on-1 private messaging with conversation grouping and read receipts (`PATCH /:id/read`).
 
 ---
 
-## 📦 Domain Modules
+## 📦 Domain Modules (16 Distinct Modules)
 
 | Module | Responsibilities |
 |---|---|
-| **Auth** | User signup, bcrypt password hashing, JWT token authentication, login validation |
-| **User** | User profile fetching, bio updates, follower/following counter tracking, pinned tweets |
-| **Tweet** | Tweet creation, polls, quote tweets, hashtags & mentions extraction, pinning, author authorization |
+| **Auth** | User registration, bcrypt password hashing, JWT token authentication, login validation |
+| **User** | User profile fetching, bio updates, verification badges (`BLUE`/`GOLD`/`OFFICIAL`), graph recommendations |
+| **Tweet** | Tweet creation, polls, quote tweets, hashtags & mentions extraction, pinning, impressions analytics |
 | **Like** | Toggle tweet likes with ACID transaction + RabbitMQ `LIKE` event notification |
 | **Retweet** | Toggle retweets with ACID transaction + RabbitMQ `RETWEET` event notification |
-| **Bookmark** | Private tweet bookmarks with ACID transaction, saved list, and custom categorized Folders/Collections |
+| **Bookmark** | Private tweet bookmarks with ACID transaction, saved list, and custom Folders/Collections |
 | **Comment** | Top-level comments and nested replies, cascade deletion, `COMMENT` and `MENTION` event notifications |
 | **Follow** | Follow/unfollow toggle with atomic counter updates, self-follow guard, followers list |
 | **Hashtag** | Hashtag normalization, indexing, trending aggregation, and querying tweets by hashtag |
-| **Feed** | Fan-out timeline generation for authenticated users |
+| **Feed** | Fan-out timeline generation (Home Feed & Verified Creator Feed) with stealth mute/block suppression |
 | **Search** | Case-insensitive keyword search for tweets and users with pagination |
 | **Message** | 1-on-1 Direct Messaging (DMs), conversation history, and read status |
 | **Block** | User blocking/unblocking with ACID transaction, auto-unfollow, DM & feed exclusion |
 | **Mute** | Stealth muting/unmuting of users with automatic feed timeline suppression |
 | **List** | Twitter Lists creation, member management, privacy controls, and dedicated member feeds |
-| **ScheduledTweet** | Future tweet scheduling, cancellation, status lifecycle, and auto-publishing engine |
+| **ScheduledTweet** | Future tweet scheduling, cancellation, status lifecycle, and background auto-publishing |
 | **Report** | Content moderation, violation reporting (SPAM, HARASSMENT, etc.), auto-flagging, and admin actioning |
 | **Notification** | Async consumption from RabbitMQ, mark single/all notifications as read |
 
 ---
 
-## 📡 API Reference
+## 📡 API Reference (45+ Endpoints)
 
 ### 🔐 Authentication & Users
 * `POST /api/v1/auth/signup` — Register a new account (`userName`, `email`, `password`)
@@ -87,7 +100,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `PATCH /api/v1/users/:id` — Update bio/profile (Authorized)
 * `DELETE /api/v1/users/:id` — Delete user account (Authorized)
 
-### ✍️ Tweets, Quotes & Polls
+### ✍️ Tweets, Quotes, Polls & Analytics
 * `POST /api/v1/tweets/create` — Post a new tweet (Supports `#hashtags`, `@mentions`, `media: []`, `quoteTweet: "id"` & `poll: { options: [] }`)
 * `GET /api/v1/tweets/get/:id` — Get single tweet with author, quoted tweet, and poll details
 * `GET /api/v1/tweets/get` — Get all tweets
@@ -122,14 +135,14 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `DELETE /api/v1/bookmarks/folders/:folderId/tweets/:tweetId` — Remove tweet from bookmark folder
 * `GET /api/v1/bookmarks/folders/:folderId/tweets` — View all tweets in folder (Paginated)
 
-### 👥 Follow & Feeds
+### 👥 Follow & Multi-Timeline Feeds
 * `POST /api/v1/follows/toggle/:id` — Follow/unfollow target user (ACID Transaction + Event)
 * `GET /api/v1/follows/followers` — Get my followers list
 * `GET /api/v1/follows/following` — Get list of users I follow
 * `GET /api/v1/feeds?page=1&limit=20` — Get home timeline feed
 * `GET /api/v1/feeds/verified?page=1&limit=20` — Get timeline feed exclusively from verified creators
 
-### 💬 Comments & Replies
+### 💬 Comments & Threaded Replies
 * `POST /api/v1/comments/tweet/:tweetId` — Create comment or threaded reply (`parentComment: "id"`)
 * `GET /api/v1/comments/tweet/:tweetId` — Get top-level comments for tweet
 * `GET /api/v1/comments/:commentId/replies` — Get nested replies for a comment
@@ -178,12 +191,74 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 
 ---
 
+## 📁 Project Directory Structure
+
+```
+twitter-modular-monolith/
+├── docker-compose.yml
+├── package.json
+├── README.md
+├── src/
+│   ├── app.js
+│   ├── server.js
+│   ├── api/
+│   │   └── v1/
+│   │       ├── index.js
+│   │       ├── auth-routes.js
+│   │       ├── user-routes.js
+│   │       ├── tweet-routes.js
+│   │       ├── like-routes.js
+│   │       ├── retweet-routes.js
+│   │       ├── bookmark-routes.js
+│   │       ├── follow-routes.js
+│   │       ├── comment-routes.js
+│   │       ├── hashtag-routes.js
+│   │       ├── feed-routes.js
+│   │       ├── notification-routes.js
+│   │       ├── search-routes.js
+│   │       ├── message-routes.js
+│   │       ├── block-routes.js
+│   │       ├── mute-routes.js
+│   │       ├── list-routes.js
+│   │       ├── scheduled-tweet-routes.js
+│   │       └── report-routes.js
+│   ├── config/
+│   │   ├── database.js
+│   │   ├── rabbitmq.js
+│   │   └── server-config.js
+│   ├── middlewares/
+│   │   └── auth-middleware.js
+│   └── modules/
+│       ├── auth/
+│       ├── user/
+│       ├── tweet/
+│       ├── like/
+│       ├── retweet/
+│       ├── bookmark/
+│       ├── follow/
+│       ├── comment/
+│       ├── hashtag/
+│       ├── feed/
+│       ├── search/
+│       ├── message/
+│       ├── block/
+│       ├── mute/
+│       ├── list/
+│       ├── scheduled/
+│       ├── report/
+│       └── notification/
+└── scratch/
+    └── run-tests.js
+```
+
+---
+
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
 * **Node.js** (v18+)
-* **MongoDB** (v6.0+ with replica set for ACID transactions)
-* **RabbitMQ**
+* **MongoDB** (v6.0+ with replica set enabled for ACID transactions)
+* **RabbitMQ** (v3.10+)
 
 ### 2. Quick Start with Docker
 ```bash
@@ -194,7 +269,7 @@ This spins up:
 - **RabbitMQ** on `localhost:5672` (Management Dashboard at `http://localhost:15672`)
 
 ### 3. Environment Variables
-Create a `.env` file based on `.env.example`:
+Create a `.env` file in the root directory:
 ```env
 PORT=6000
 MONGO_URL=mongodb://localhost:27017/twitter
@@ -207,7 +282,7 @@ RABBITMQ_QUEUE=notification-queue
 RABBITMQ_ROUTING_KEY=NOTIFY
 ```
 
-### 4. Start Application
+### 4. Install & Run
 ```bash
 npm install
 npm start
@@ -215,9 +290,21 @@ npm start
 
 ---
 
-## 🧪 Running Automated Tests
+## 🧪 Automated Testing
 
-Run the complete 47-assertion end-to-end integration test suite:
+Execute the comprehensive end-to-end integration test suite (**129 assertions across 25 domain suites**):
+
 ```bash
 node scratch/run-tests.js
 ```
+
+```text
+========================================
+📊 TEST RESULTS: 129 PASSED, 0 FAILED (100% SUCCESS)
+========================================
+```
+
+---
+
+## 📄 License
+This project is licensed under the MIT License.
