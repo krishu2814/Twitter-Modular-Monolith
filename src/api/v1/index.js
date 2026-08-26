@@ -14,6 +14,7 @@ const searchRoutes = require('./search-routes');
 const bookmarkRoutes = require('./bookmark-routes');
 const messageRoutes = require('./message-routes');
 const blockRoutes = require('./block-routes');
+const listRoutes = require('./list-routes');
 
 const router = express.Router();
 
@@ -31,5 +32,6 @@ router.use('/notifications', notificationRoutes);
 router.use('/search', searchRoutes);
 router.use('/messages', messageRoutes);
 router.use('/blocks', blockRoutes);
+router.use('/lists', listRoutes);
 
 module.exports = router;

@@ -67,6 +67,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 | **Search** | Case-insensitive keyword search for tweets and users with pagination |
 | **Message** | 1-on-1 Direct Messaging (DMs), conversation history, and read status |
 | **Block** | User blocking/unblocking with ACID transaction, auto-unfollow, DM & feed exclusion |
+| **List** | Twitter Lists creation, member management, privacy controls, and dedicated member feeds |
 | **Notification** | Async consumption from RabbitMQ, mark single/all notifications as read |
 
 ---
@@ -127,6 +128,16 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 ### 🚫 Blocks & Safety
 * `POST /api/v1/blocks/toggle/:userId` — Block or unblock a user (ACID Transaction + Auto-Unfollow)
 * `GET /api/v1/blocks` — List all users currently blocked by me
+
+### 📋 Lists & Curated Feeds
+* `POST /api/v1/lists` — Create a new List (`name`, `description`, `isPrivate`, `members`)
+* `GET /api/v1/lists/user/me` — Get all lists created by the authenticated user
+* `GET /api/v1/lists/:id` — Get list details (Populates owner and members)
+* `PATCH /api/v1/lists/:id` — Update list details (List owner only)
+* `DELETE /api/v1/lists/:id` — Delete a list (List owner only)
+* `POST /api/v1/lists/:id/members/:userId` — Add member to list (List owner only)
+* `DELETE /api/v1/lists/:id/members/:userId` — Remove member from list (List owner only)
+* `GET /api/v1/lists/:id/tweets` — Get curated timeline feed of tweets authored by list members (Paginated)
 
 ### 🔔 Notifications
 * `GET /api/v1/notifications?page=1&limit=10` — List async notifications
