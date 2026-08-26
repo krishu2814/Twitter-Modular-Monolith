@@ -10,7 +10,8 @@ class TweetController {
         try {
             const tweetData = {
                 content: req.body.content,
-                author: req.user._id
+                author: req.user._id,
+                quoteTweet: req.body.quoteTweet || null
             };
             const tweet = await this.tweetService.create(tweetData);
             return res.status(201).json({

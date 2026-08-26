@@ -7,7 +7,15 @@ class TweetRepository {
     }
 
     async getTweetById(id) {
-        return await Tweet.findById(id).populate('author', 'userName profileImage bio');
+        return await Tweet.findById(id)
+            .populate('author', 'userName profileImage bio')
+            .populate({
+                path: 'quoteTweet',
+                populate: {
+                    path: 'author',
+                    select: 'userName profileImage bio'
+                }
+            });
     }
 
     async deleteTweet(id) {
@@ -15,7 +23,16 @@ class TweetRepository {
     }
     
     async getAllTweets() {
-        return await Tweet.find().sort({ createdAt: -1 }).populate('author', 'userName profileImage bio');
+        return await Tweet.find()
+            .sort({ createdAt: -1 })
+            .populate('author', 'userName profileImage bio')
+            .populate({
+                path: 'quoteTweet',
+                populate: {
+                    path: 'author',
+                    select: 'userName profileImage bio'
+                }
+            });
     }
     
     async updateTweet(id, data) {

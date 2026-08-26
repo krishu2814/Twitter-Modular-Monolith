@@ -9,6 +9,8 @@ const commentRoutes = require('./comment-routes');
 const hashtagRoutes = require('./hashtag-routes');
 const feedRoutes = require('./feed-routes');
 const notificationRoutes = require('./notification-routes');
+const retweetRoutes = require('./retweet-routes');
+const searchRoutes = require('./search-routes');
 
 const router = express.Router();
 
@@ -16,10 +18,12 @@ router.use('/users', userRoutes);
 router.use('/auth', authRoutes);
 router.use('/tweets', tweetRoutes);
 router.use('/likes', likeRoutes);
+router.use('/retweets', retweetRoutes);
 router.use('/follows', followRoutes);
 router.use('/comments', commentRoutes);
 router.use('/hashtags', hashtagRoutes);
 router.use('/feeds', feedRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/search', searchRoutes);
 
 module.exports = router;

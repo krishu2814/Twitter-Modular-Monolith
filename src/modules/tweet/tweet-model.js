@@ -14,6 +14,16 @@ const tweetSchema = new mongoose.Schema({
     likesCount: {
         type: Number,
         default: 0
+    },
+    retweetsCount: {
+        type: Number,
+        default: 0
+    },
+    // if tweet is a quote tweet
+    quoteTweet: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tweet',
+        default: null
     }
 }, { timestamps: true }
 

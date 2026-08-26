@@ -28,6 +28,13 @@ class FeedRepository {
         .skip(skip)
         .limit(limit)
         .populate('author', 'userName profileImage')
+        .populate({
+            path: 'quoteTweet',
+            populate: {
+                path: 'author',
+                select: 'userName profileImage'
+            }
+        })
         .lean();
 
         return feedTweets;
