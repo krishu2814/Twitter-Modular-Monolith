@@ -80,7 +80,9 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `POST /api/v1/auth/signup` — Register a new account (`userName`, `email`, `password`)
 * `POST /api/v1/auth/signin` — Login and receive JWT (`email`, `password`)
 * `GET /api/v1/users` — List all users
-* `GET /api/v1/users/:id` — Get user profile by ID (Populates `pinnedTweet`)
+* `GET /api/v1/users/recommendations/who-to-follow` — Graph-based "Who to Follow" recommendations (Friends-of-friends algorithm)
+* `GET /api/v1/users/:id` — Get user profile by ID (Populates `pinnedTweet`, `isVerified`, `badgeType`)
+* `PATCH /api/v1/users/:id/verify` — Update verification status & badge (`isVerified: true`, `badgeType: "BLUE" | "GOLD" | "OFFICIAL"`)
 * `PATCH /api/v1/users/:id` — Update bio/profile (Authorized)
 * `DELETE /api/v1/users/:id` — Delete user account (Authorized)
 
@@ -116,6 +118,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `GET /api/v1/follows/followers` — Get my followers list
 * `GET /api/v1/follows/following` — Get list of users I follow
 * `GET /api/v1/feeds?page=1&limit=20` — Get home timeline feed
+* `GET /api/v1/feeds/verified?page=1&limit=20` — Get timeline feed exclusively from verified creators
 
 ### 💬 Comments & Replies
 * `POST /api/v1/comments/tweet/:tweetId` — Create comment or threaded reply (`parentComment: "id"`)

@@ -136,6 +136,51 @@ class UserController {
             });
         }
     }
+
+    // PATCH /api/v1/users/:id/verify
+    async verifyUser(req, res) {
+        try {
+            const { isVerified, badgeType } = req.body;
+            const user = await this.userService.verifyUser(req.params.id, isVerified !== false, badgeType || 'BLUE');
+
+            return res.status(200).json({
+                status: "success",
+                message: "User verification status updated successfully.",
+                data: user,
+                err: {}
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: "error",
+                message: error.message || "Something went wrong while verifying user.",
+                data: {},
+                err: error
+            });
+        }
+    }
+
+    // GET /api/v1/users/recommendations/who-to-follow
+    async getWhoToFollow(req, res) {
+        try {
+            const userId = req.user._id;
+            const limit = parseInt(req.query.limit) || 5;
+            const result = await this.userService.getWhoToFollow(userId, limit);
+
+            return res.status(200).json({
+                status: "success",
+                message: "Who-to-follow recommendations fetched successfully.",
+                data: result,
+                err: {}
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: "error",
+                message: error.message || "Something went wrong while fetching recommendations.",
+                data: {},
+                err: error
+            });
+        }
+    }
 }
 
 module.exports = UserController;

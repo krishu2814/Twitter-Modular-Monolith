@@ -88,6 +88,21 @@ class UserRepository {
         );
     }
 
+    async updateVerification(userId, isVerified = true, badgeType = 'BLUE') {
+        return await User.findByIdAndUpdate(
+            userId,
+            { isVerified, badgeType },
+            { returnDocument: 'after' }
+        );
+    }
+
+    async getPopularUsers(excludeIds = [], limit = 5) {
+        return await User.find({ _id: { $nin: excludeIds } })
+            .sort({ followersCount: -1 })
+            .limit(limit)
+            .select('userName profileImage bio followersCount followingCount isVerified badgeType');
+    }
+
 }
 
 module.exports = UserRepository;

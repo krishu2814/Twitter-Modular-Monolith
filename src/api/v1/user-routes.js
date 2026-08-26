@@ -16,8 +16,14 @@ const userController = new UserController();
 // get all users
 router.get('/', authentication, userController.getAll.bind(userController));
 
+// get who to follow recommendations
+router.get('/recommendations/who-to-follow', authentication, userController.getWhoToFollow.bind(userController));
+
 // get user by id
 router.get('/:id', authentication, userController.get.bind(userController));
+
+// verify user
+router.patch('/:id/verify', authentication, userController.verifyUser.bind(userController));
 
 // update user
 router.patch('/:id', authentication, userController.update.bind(userController));

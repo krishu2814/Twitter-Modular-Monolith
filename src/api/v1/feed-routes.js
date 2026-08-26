@@ -6,6 +6,7 @@ const authentication = require('../../middlewares/auth-middleware');
 const FeedController = require('../../modules/feed/feed-controller');
 const feedController = new FeedController();
 
+router.get('/verified', authentication, feedController.getVerifiedFeed.bind(feedController));
 router.get('/', authentication, feedController.getFeed.bind(feedController));
 
 module.exports = router;

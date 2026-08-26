@@ -14,6 +14,15 @@ class FeedService {
         }
     }
 
+    async getVerifiedFeed(userId, page, limit) {
+        try {
+            const feed = await this.feedRepository.getVerifiedFeed(userId, page, limit);
+            return feed;
+        } catch (error) {
+            throw error;
+        }
+    }
+
 }
 
 module.exports = FeedService;

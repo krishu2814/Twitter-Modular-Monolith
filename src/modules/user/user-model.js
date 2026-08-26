@@ -39,6 +39,17 @@ const userSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Tweet',
       default: null
+    },
+
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
+
+    badgeType: {
+      type: String,
+      enum: ['NONE', 'BLUE', 'GOLD', 'OFFICIAL'],
+      default: 'NONE'
     }
 },
     { timestamps: true } // created at , updated at

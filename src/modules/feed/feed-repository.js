@@ -60,6 +60,39 @@ class FeedRepository {
         return feedTweets;
     }
 
+    // Fetch tweets authored exclusively by verified users
+    async getVerifiedFeed(userId, page = 1, limit = 20) {
+        const User = require('../user/user-model');
+        const verifiedUsers = await User.find({ isVerified: true }).select('_id');
+        let verifiedUserIds = verifiedUsers.map(u => u._id);
+
+        // Exclude blocked & muted users
+        if (userId) {
+            const blockedIds = await this.blockRepository.getBlockedIds(userId);
+            const mutedIds = await this.muteRepository.getMutedIds(userId);
+            const excludeSet = new Set([...blockedIds.map(id => id.toString()), ...mutedIds.map(id => id.toString())]);
+            verifiedUserIds = verifiedUserIds.filter(id => !excludeSet.has(id.toString()));
+        }
+
+        const skip = (page - 1) * limit;
+
+        const tweets = await Tweet.find({ author: { $in: verifiedUserIds } })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('author', 'userName profileImage isVerified badgeType bio')
+            .populate({
+                path: 'quoteTweet',
+                populate: {
+                    path: 'author',
+                    select: 'userName profileImage isVerified badgeType'
+                }
+            })
+            .lean();
+
+        return tweets;
+    }
+
 }
 
 module.exports = FeedRepository;
