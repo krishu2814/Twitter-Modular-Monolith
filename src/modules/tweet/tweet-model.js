@@ -64,6 +64,19 @@ const tweetSchema = new mongoose.Schema({
             type: Date,
             default: null
         }
+    },
+    // Moderation & safety fields
+    reportsCount: {
+        type: Number,
+        default: 0
+    },
+    isFlagged: {
+        type: Boolean,
+        default: false
+    },
+    isHidden: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true }
 

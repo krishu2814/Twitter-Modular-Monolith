@@ -70,6 +70,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 | **Mute** | Stealth muting/unmuting of users with automatic feed timeline suppression |
 | **List** | Twitter Lists creation, member management, privacy controls, and dedicated member feeds |
 | **ScheduledTweet** | Future tweet scheduling, cancellation, status lifecycle, and auto-publishing engine |
+| **Report** | Content moderation, violation reporting (SPAM, HARASSMENT, etc.), auto-flagging, and admin actioning |
 | **Notification** | Async consumption from RabbitMQ, mark single/all notifications as read |
 
 ---
@@ -163,6 +164,12 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `POST /api/v1/lists/:id/members/:userId` — Add member to list (List owner only)
 * `DELETE /api/v1/lists/:id/members/:userId` — Remove member from list (List owner only)
 * `GET /api/v1/lists/:id/tweets` — Get curated timeline feed of tweets authored by list members (Paginated)
+
+### 🚩 Content Moderation & Reports
+* `POST /api/v1/reports/tweets/:tweetId` — Report a tweet (`reason: "SPAM" | "HARASSMENT" | "HATE_SPEECH" | "MISINFORMATION" | "VIOLENCE" | "OTHER"`, `description`)
+* `GET /api/v1/reports?status=PENDING` — List moderation reports (Paginated, filter by status/reason)
+* `GET /api/v1/reports/:id` — Get detailed report information with populated author/reporter
+* `PATCH /api/v1/reports/:id/action` — Moderate report (`status: "RESOLVED"`, `actionTaken: "TWEET_HIDDEN" | "TWEET_DELETED" | "NO_ACTION"`)
 
 ### 🔔 Notifications
 * `GET /api/v1/notifications?page=1&limit=10` — List async notifications

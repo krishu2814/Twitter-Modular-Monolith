@@ -17,6 +17,7 @@ const blockRoutes = require('./block-routes');
 const listRoutes = require('./list-routes');
 const muteRoutes = require('./mute-routes');
 const scheduledTweetRoutes = require('./scheduled-tweet-routes');
+const reportRoutes = require('./report-routes');
 
 const router = express.Router();
 
@@ -37,5 +38,6 @@ router.use('/blocks', blockRoutes);
 router.use('/lists', listRoutes);
 router.use('/mutes', muteRoutes);
 router.use('/scheduled-tweets', scheduledTweetRoutes);
+router.use('/reports', reportRoutes);
 
 module.exports = router;

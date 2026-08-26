@@ -42,7 +42,8 @@ class FeedRepository {
 
         // 7. Fetch tweets (using 'author' field)
         const feedTweets = await Tweet.find({
-            author: { $in: followingUserIds }
+            author: { $in: followingUserIds },
+            isHidden: { $ne: true }
         })
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -76,7 +77,10 @@ class FeedRepository {
 
         const skip = (page - 1) * limit;
 
-        const tweets = await Tweet.find({ author: { $in: verifiedUserIds } })
+        const tweets = await Tweet.find({
+            author: { $in: verifiedUserIds },
+            isHidden: { $ne: true }
+        })
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit)
