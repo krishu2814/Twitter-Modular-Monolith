@@ -1,8 +1,12 @@
 const Notification = require('./notification-model');
 
 class NotificationRepository {
-    async createNotification(data, session) {
-        return await Notification.create([data], { session });
+    async createNotification(data, session = null) {
+        if (session) {
+            const result = await Notification.create([data], { session });
+            return result[0];
+        }
+        return await Notification.create(data);
     }
 
     async delete(id, session = null) {
@@ -30,7 +34,7 @@ class NotificationRepository {
     }
 
     async markRead(notificationId) {
-        return await Notification.findByIdAndUpdate(notificationId, { isRead: true }, { new: true });
+        return await Notification.findByIdAndUpdate(notificationId, { isRead: true }, { returnDocument: 'after' });
     }
 
     async markAllRead(userId) {

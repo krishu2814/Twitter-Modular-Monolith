@@ -9,26 +9,30 @@ class CommentService {
     }
 
     async createComment(content, userId, tweetId) {
-
         try {
+            const tweet = await this.tweetRepository.getTweetById(tweetId);
+            if (!tweet) {
+                throw new Error('Tweet not found');
+            }
+
             const comment = await this.commentRepository.createComment({
                 content,
                 user: userId,
                 tweet: tweetId
             });
 
-            const tweet = await this.tweetRepository.getTweetById(tweetId);
-            if (!tweet) {
-                throw new Error('Tweet not found');
-            }
-
-            if (tweet.author.toString() !== userId.toString()) {
-                await publishEvent({
-                    user: tweet.author.toString(),     // tweet owner
-                    actor: userId.toString(),          // commenter
-                    type: "COMMENT",
-                    entityId: comment._id.toString()
-                });
+            const tweetAuthorId = tweet.author && tweet.author._id ? tweet.author._id.toString() : tweet.author.toString();
+            if (tweetAuthorId !== userId.toString()) {
+                try {
+                    await publishEvent({
+                        user: tweetAuthorId,     // tweet owner
+                        actor: userId.toString(),          // commenter
+                        type: "COMMENT",
+                        entityId: comment._id.toString()
+                    });
+                } catch (eventErr) {
+                    console.error('❌ Failed to publish COMMENT event:', eventErr);
+                }
             }
             return comment;
         } catch (error) {
@@ -37,17 +41,17 @@ class CommentService {
     }
 
     async deleteComment(commentId, userId) {
-        // get comment + tweet owner
-        const comment = await this.commentRepository
-            .getComment(commentId)
-            .populate('tweet');
+        // get comment + tweet owner (already populated by repository)
+        const comment = await this.commentRepository.getComment(commentId);
 
         if (!comment) {
             throw new Error('Comment not found!');
         }
 
-        const commentOwner = comment.user.toString();
-        const tweetOwner = comment.tweet.author.toString();
+        const commentOwner = comment.user && comment.user._id ? comment.user._id.toString() : comment.user.toString();
+        const tweetOwner = comment.tweet && comment.tweet.author
+            ? (comment.tweet.author._id ? comment.tweet.author._id.toString() : comment.tweet.author.toString())
+            : null;
 
         /**
          * WHO CAN DELETE COMMENT

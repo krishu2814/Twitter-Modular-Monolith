@@ -9,11 +9,16 @@ class LikeService {
     }
 
     async toggleLike(userId, tweetId) {
+        const tweet = await Tweet.findById(tweetId);
+        if (!tweet) {
+            throw new Error('Tweet not found');
+        }
+
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
             // check if user already liked
-            const alreadyLiked = await this.likeRepository.findUserIdAndTweetId(userId, tweetId);
+            const alreadyLiked = await this.likeRepository.findUserIdAndTweetId(userId, tweetId, session);
 
             if (alreadyLiked) {
                 // UNLIKE
@@ -30,19 +35,23 @@ class LikeService {
             const newLike = await this.likeRepository.create({ user: userId, tweet: tweetId }, session);
             await this.likeRepository.incrementTweetLikes(tweetId, session);
 
-            // Get tweet owner
-            const tweet = await Tweet.findById(tweetId);
-
-            // Publish LIKE notification event
-            await publishEvent({
-                user: tweet.author.toString(),   // receiver (tweet owner)
-                actor: userId.toString(),        // who liked
-                type: "LIKE",
-                entityId: newLike._id.toString()
-            });
-
             await session.commitTransaction();
             session.endSession();
+
+            // Publish LIKE notification event only if liking someone else's tweet
+            if (tweet.author.toString() !== userId.toString()) {
+                try {
+                    await publishEvent({
+                        user: tweet.author.toString(),   // receiver (tweet owner)
+                        actor: userId.toString(),        // who liked
+                        type: "LIKE",
+                        entityId: newLike._id.toString()
+                    });
+                } catch (eventErr) {
+                    console.error('❌ Failed to publish LIKE event:', eventErr);
+                }
+            }
+
             return { liked: true };
 
         } catch (error) {

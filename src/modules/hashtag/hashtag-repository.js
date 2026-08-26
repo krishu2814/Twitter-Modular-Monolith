@@ -13,7 +13,7 @@ class HashtagRepository {
         return await Hashtag.findOneAndUpdate(
             { title },
             { $addToSet: { tweets: tweetId } }, // $addToSet is a MongoDB array operator
-            { new: true }
+            { returnDocument: 'after' }
         );
     }
 
@@ -22,8 +22,8 @@ class HashtagRepository {
             { title }).populate({
                 path: 'tweets',
                 populate: {
-                    path: 'user',
-                    select: 'userName'
+                    path: 'author',
+                    select: 'userName profileImage'
                 }
             }
         );

@@ -16,7 +16,8 @@ class HashService {
 
         try {
             for (let tag of tags) {
-                const title = tag.toLowerCase();
+                const title = tag.startsWith('#') ? tag.slice(1).toLowerCase().trim() : tag.toLowerCase().trim();
+                if (!title) continue;
                 const existingHashtag = await this.hashtagRepository.findHashtagByTitle(title);
                 /**
                  * If already exists -> then do not create duplicate hashatag -> just add tweets
@@ -42,7 +43,8 @@ class HashService {
     async getTweetsByHashtag(title) {
 
         try {
-            const result = await this.hashtagRepository.getTweetsByHashtag(title.toLowerCase());
+            const cleanTitle = title.startsWith('#') ? title.slice(1).toLowerCase().trim() : title.toLowerCase().trim();
+            const result = await this.hashtagRepository.getTweetsByHashtag(cleanTitle);
             if (!result) {
                 throw new Error("Hashtag not found");
             }

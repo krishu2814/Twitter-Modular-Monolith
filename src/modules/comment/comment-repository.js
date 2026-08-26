@@ -17,25 +17,25 @@ class CommentRepository {
         return await Comment.findByIdAndUpdate(
             id,
             data,
-            { new: true } // return updated document
+            { returnDocument: 'after' }
         );
     }
 
     // find comment by id
     async getComment(id) {
-        return await Comment.findById(id);
+        return await Comment.findById(id).populate('tweet');
     }
 
     // find comments by tweet
     async getCommentsByTweet(tweetId, page = 1, limit = 10) {
         const skip = (page - 1) * limit;
-        // populate user(only userName and Email) based on user's tweetId
+        // populate user based on user's tweetId
         const comments = await Comment.find({
             tweet: tweetId
         })
             .skip(skip)
             .limit(limit)
-            .populate('user', 'userName email')
+            .populate('user', 'userName profileImage email')
             .populate('tweet', 'content author')
             .sort({ createdAt: -1 });
         const total = await Comment.countDocuments({ tweet: tweetId });

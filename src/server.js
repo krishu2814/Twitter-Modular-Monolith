@@ -6,21 +6,21 @@ const app = require('./app');
 
 const setUpAndStartServer = async() => {
 
-    // 1) connect to datatbase
+    // 1) Connect to Database
     await connectDB();
 
-    // 2️) Connect RabbitMQ
+    // 2) Connect RabbitMQ
     await connectQueue();
     console.log('✅ RabbitMQ Connected');
 
-    // 3️) Start Notification Consumer
+    // 3) Start Notification Consumer
     const consumer = new NotificationConsumer();
     await consumer.start();
     console.log('✅ Notification Consumer Started');
 
-    // 2) start the server
+    // 4) Start the HTTP Server
     app.listen(PORT, () => {
         console.log(`Server is listening on the port ${PORT}`);
-    })
+    });
 }
 setUpAndStartServer();

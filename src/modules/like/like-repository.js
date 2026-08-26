@@ -1,21 +1,28 @@
-const Like = require('../../modules/like/like-model');
+const Like = require('./like-model');
 const Tweet = require('../tweet/tweet-model');
 
 class LikeRepository {
-    async create(data) {
+    async create(data, session = null) {
+        if (session) {
+            const result = await Like.create([data], { session });
+            return result[0];
+        }
         return await Like.create(data);
     }
 
-    async findUserIdAndTweetId(userId, tweetId) {
-        return await Like.findOne({
-            // as per Like model
+    async findUserIdAndTweetId(userId, tweetId, session = null) {
+        const query = Like.findOne({
             user: userId,
             tweet: tweetId
         });
+        if (session) {
+            query.session(session);
+        }
+        return await query;
     }
 
-    async delete(id) {
-        return await Like.findByIdAndDelete(id);
+    async delete(id, session = null) {
+        return await Like.findByIdAndDelete(id, { session });
     }
 
     // tweet page || like count
@@ -32,19 +39,19 @@ class LikeRepository {
         });
     }
 
-    async incrementTweetLikes(tweetId, session) {
+    async incrementTweetLikes(tweetId, session = null) {
         return await Tweet.findByIdAndUpdate(
             tweetId,
             { $inc: { likesCount: 1 } },
-            { new: true, session }
+            { returnDocument: 'after', session }
         );
     }
 
-    async decrementTweetLikes(tweetId, session) {
+    async decrementTweetLikes(tweetId, session = null) {
         return await Tweet.findByIdAndUpdate(
             tweetId,
             { $inc: { likesCount: -1 } },
-            { new: true, session }
+            { returnDocument: 'after', session }
         );
     }
 

@@ -7,11 +7,15 @@ class FollowRepository {
         return result[0];
     }
 
-    async findFollow(followerId, followingId) {
-        return await Follow.findOne({
+    async findFollow(followerId, followingId, session = null) {
+        const query = Follow.findOne({
             follower: followerId,
             following: followingId
         });
+        if (session) {
+            query.session(session);
+        }
+        return await query;
     }
 
     async delete(id, session = null) {
@@ -30,13 +34,13 @@ class FollowRepository {
     async getFollowers(userId) {
         return await Follow.find({
             following: userId // find where following = B
-        }).populate('follower', 'userName email');
+        }).populate('follower', 'userName email profileImage bio');
     }
 
     async getFollowing(userId) {
         return await Follow.find({
             follower: userId // find where follower = A
-        }).populate('following', 'userName email');
+        }).populate('following', 'userName email profileImage bio');
     }
 
     async getFollowingIds(userId) {

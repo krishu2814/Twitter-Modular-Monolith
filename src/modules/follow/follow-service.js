@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const FollowRepository = require('./follow-repository');
-const UserRepository = require('../../modules/user/user-repository');
+const UserRepository = require('../user/user-repository');
 const { publishEvent } = require('../../utils/producer');
 
 class FollowService {
@@ -10,14 +10,20 @@ class FollowService {
     }
 
     async toggleFollow(followerId, followingId) {
+        if (followerId.toString() === followingId.toString()) {
+            throw new Error('User cannot follow themselves.');
+        }
+
+        // Verify target user exists
+        const targetUser = await this.userRepository.getUserById(followingId);
+        if (!targetUser) {
+            throw new Error('User to follow not found');
+        }
+
         const session = await mongoose.startSession(); // start transaction session
         session.startTransaction();
 
         try {
-            if (followerId === followingId) {
-                throw new Error('User cannot follow themselves.');
-            }
-
             // Check if already following
             const existingFollow = await this.followRepository.findFollow(followerId, followingId, session);
             if (existingFollow) {
@@ -47,11 +53,11 @@ class FollowService {
             // Publish FOLLOW event
             try {
                 await publishEvent({
-                user: followingId.toString(),   // ALWAYS STRING
-                actor: followerId.toString(),  // ALWAYS STRING
-                type: "FOLLOW",
-                entityId: newFollow._id.toString() // ALWAYS STRING
-            });
+                    user: followingId.toString(),   // ALWAYS STRING
+                    actor: followerId.toString(),  // ALWAYS STRING
+                    type: "FOLLOW",
+                    entityId: newFollow._id.toString() // ALWAYS STRING
+                });
             } catch (error) {
                 console.error('❌ Failed to publish FOLLOW event:', error);
             }

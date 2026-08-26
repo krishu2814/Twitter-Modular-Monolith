@@ -42,7 +42,7 @@ class CommentController {
         try {
 
             const { commentId } = req.params;
-            const userId = req.user.id;
+            const userId = req.user._id;
 
             await this.commentService.deleteComment(commentId, userId);
 

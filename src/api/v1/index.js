@@ -8,6 +8,7 @@ const followRoutes = require('./follow-routes');
 const commentRoutes = require('./comment-routes');
 const hashtagRoutes = require('./hashtag-routes');
 const feedRoutes = require('./feed-routes');
+const notificationRoutes = require('./notification-routes');
 
 const router = express.Router();
 
@@ -19,5 +20,6 @@ router.use('/follows', followRoutes);
 router.use('/comments', commentRoutes);
 router.use('/hashtags', hashtagRoutes);
 router.use('/feeds', feedRoutes);
+router.use('/notifications', notificationRoutes);
 
 module.exports = router;

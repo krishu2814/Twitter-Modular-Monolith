@@ -11,7 +11,6 @@ class FollowController {
             const followingId = req.params.id; // to whom the user follows
 
             const toggleFollow = await this.followService.toggleFollow(followerId, followingId);
-            console.log(toggleFollow);
             
             return res.status(200).json({
                 status: "success",
@@ -21,8 +20,8 @@ class FollowController {
             });
         } catch (error) {
             return res.status(500).json({
-                status: "false",
-                message: "Cannot toggle follow.",
+                status: "error",
+                message: error.message || "Cannot toggle follow.",
                 data: {},
                 err: error.message
             });
@@ -31,17 +30,17 @@ class FollowController {
 
     async getFollowers(req, res) {
         try {
-            const followers = await this.followService.getFollowers(req.user.id);
+            const followers = await this.followService.getFollowers(req.user._id);
             return res.status(200).json({
-                    status: "success",
-                    message: "Successfully fetched followers.",
-                    data: followers,
-                    err: {}
+                status: "success",
+                message: "Successfully fetched followers.",
+                data: followers,
+                err: {}
             });   
         } catch (error) {
             return res.status(500).json({
-                status: "false",
-                message: "Cannot fetch followers.",
+                status: "error",
+                message: error.message || "Cannot fetch followers.",
                 data: {},
                 err: error.message
             });
@@ -50,17 +49,17 @@ class FollowController {
 
     async getFollowing(req, res) {
         try {
-            const following = await this.followService.getFollowing(req.user.id);
+            const following = await this.followService.getFollowing(req.user._id);
             return res.status(200).json({
-                    status: "success",
-                    message: "Successfully fetched following.",
-                    data: following,
-                    err: {}
+                status: "success",
+                message: "Successfully fetched following.",
+                data: following,
+                err: {}
             });   
         } catch (error) {
             return res.status(500).json({
-                status: "false",
-                message: "Cannot fetch following.",
+                status: "error",
+                message: error.message || "Cannot fetch following.",
                 data: {},
                 err: error.message
             });

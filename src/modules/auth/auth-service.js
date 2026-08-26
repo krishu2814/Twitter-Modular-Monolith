@@ -15,10 +15,9 @@ class AuthService {
         const { userName, email, password } = data; // object destructuring
 
         // 2) check if user already exists
-        // password -> return to user
         const user = await this.userRepository.findByEmail(email);
         if (user) {
-            throw new Error("User already exists");
+            throw new Error("User with this email already exists");
         };
 
         // 3) hash the password
@@ -49,14 +48,13 @@ class AuthService {
             // 2) find user from database
             const user = await this.userRepository.findByEmail(email);
             if (!user) {
-                throw new Error("No user exists with this email.")
+                throw new Error("No user exists with this email.");
             }
 
             // 3) compare password with hashed password stored in the database -> bcrypt
-            // 2nd argument -> hashed password stored in DB
             const comparePassword = await bcrypt.compare(password, user.password);
             if (!comparePassword) {
-                throw new Error("Wrong passsword enterrd by user!")
+                throw new Error("Invalid password entered by user!");
             }
 
             // 4) create JWT token -> synchronous function -> no await needed

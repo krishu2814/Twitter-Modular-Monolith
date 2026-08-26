@@ -8,7 +8,11 @@ class TweetController {
     // create tweet
     async create(req, res) {
         try {
-            const tweet = await this.tweetService.create(req.body);
+            const tweetData = {
+                content: req.body.content,
+                author: req.user._id
+            };
+            const tweet = await this.tweetService.create(tweetData);
             return res.status(201).json({
                 status: "success",
                 message: "Tweet created successfully.",
@@ -18,7 +22,7 @@ class TweetController {
         } catch (error) {
             return res.status(500).json({
                 status: "error",
-                message: "Something went wrong while creating the tweet.",
+                message: error.message || "Something went wrong while creating the tweet.",
                 data: {},
                 err: error
             }); 
@@ -38,7 +42,7 @@ class TweetController {
         } catch (error) {
             return res.status(500).json({
                 status: "error",
-                message: "Something went wrong while fetching tweet.",
+                message: error.message || "Something went wrong while fetching tweet.",
                 data: {},
                 err: error
             });
@@ -59,7 +63,7 @@ class TweetController {
         } catch (error) {
             return res.status(500).json({
                 status: "error",
-                message: "Something went wrong while fetching tweets.",
+                message: error.message || "Something went wrong while fetching tweets.",
                 data: {},
                 err: error
             });
@@ -72,6 +76,7 @@ class TweetController {
         try {
             const tweet = await this.tweetService.update(
                 req.params.id,
+                req.user._id,
                 req.body
             );
             return res.status(200).json({
@@ -83,7 +88,7 @@ class TweetController {
         } catch (error) {
             return res.status(500).json({
                 status: "error",
-                message: "Something went wrong while updating tweet.",
+                message: error.message || "Something went wrong while updating tweet.",
                 data: {},
                 err: error
             });
@@ -94,7 +99,7 @@ class TweetController {
     // delete tweet
     async delete(req, res) {
         try {
-            const tweet = await this.tweetService.delete(req.params.id);
+            const tweet = await this.tweetService.delete(req.params.id, req.user._id);
             return res.status(200).json({
                 status: "success",
                 message: "Tweet deleted successfully.",
@@ -102,9 +107,9 @@ class TweetController {
                 err: {}
             });
         } catch (error) {
-            return res.status(204).json({
+            return res.status(500).json({
                 status: "error",
-                message: "Something went wrong while deleting tweet.",
+                message: error.message || "Something went wrong while deleting tweet.",
                 data: {},
                 err: error
             });

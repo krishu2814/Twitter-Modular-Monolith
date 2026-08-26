@@ -29,6 +29,15 @@ class UserController {
 
     async update(req, res) {
         try {
+            if (req.user._id.toString() !== req.params.id) {
+                return res.status(403).json({
+                    status: "error",
+                    message: "You can only update your own account.",
+                    data: {},
+                    err: {}
+                });
+            }
+
             const user = await this.userService.update(req.params.id, req.body);
 
             return res.status(200).json({
@@ -41,7 +50,7 @@ class UserController {
         } catch (error) {
             return res.status(500).json({
                 status: "error",
-                message: "Something went wrong while updating the user.",
+                message: error.message || "Something went wrong while updating the user.",
                 data: {},
                 err: error
             });
@@ -50,6 +59,15 @@ class UserController {
 
     async delete(req, res) {
         try {
+            if (req.user._id.toString() !== req.params.id) {
+                return res.status(403).json({
+                    status: "error",
+                    message: "You can only delete your own account.",
+                    data: {},
+                    err: {}
+                });
+            }
+
             const user = await this.userService.delete(req.params.id);
 
             return res.status(200).json({
@@ -62,7 +80,7 @@ class UserController {
         } catch (error) {
             return res.status(500).json({
                 status: "error",
-                message: "Something went wrong while deleting the user.",
+                message: error.message || "Something went wrong while deleting the user.",
                 data: {},
                 err: error
             });
@@ -72,6 +90,14 @@ class UserController {
     async get(req, res) {
         try {
             const user = await this.userService.find(req.params.id);
+            if (!user) {
+                return res.status(404).json({
+                    status: "error",
+                    message: "User not found.",
+                    data: {},
+                    err: {}
+                });
+            }
 
             return res.status(200).json({
                 status: "success",
@@ -83,7 +109,7 @@ class UserController {
         } catch (error) {
             return res.status(500).json({
                 status: "error",
-                message: "Something went wrong while fetching the user.",
+                message: error.message || "Something went wrong while fetching the user.",
                 data: {},
                 err: error
             });

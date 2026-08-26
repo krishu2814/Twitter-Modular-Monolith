@@ -22,7 +22,7 @@ class UserRepository {
         return await User.findByIdAndUpdate(
             id,
             data,
-            { new: true } // return updated data
+            { returnDocument: 'after' }
         );
     }
 
@@ -40,7 +40,7 @@ class UserRepository {
         return await User.findByIdAndUpdate(
             userId,
             { $inc: { followingCount: -1 } },
-            { new: true, session }
+            { returnDocument: 'after', session }
         );
     }
 
@@ -48,7 +48,7 @@ class UserRepository {
         return await User.findByIdAndUpdate(
             userId,
             { $inc: { followingCount: 1 } },
-            { new: true, session }
+            { returnDocument: 'after', session }
         );
     }
 
@@ -56,7 +56,7 @@ class UserRepository {
         return await User.findByIdAndUpdate(
             userId,
             { $inc: { followersCount: -1 } },
-            { new: true, session }
+            { returnDocument: 'after', session }
         );
     }
 
@@ -64,7 +64,7 @@ class UserRepository {
         return await User.findByIdAndUpdate(
             userId,
             { $inc: { followersCount: 1 } },
-            { new: true, session }
+            { returnDocument: 'after', session }
         );
     }
 
