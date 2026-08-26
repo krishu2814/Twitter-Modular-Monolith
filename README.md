@@ -43,8 +43,9 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * **ACID Transactions**: Multi-document transactional integrity for Likes, Retweets, Follows, and Bookmarks using `mongoose.startSession()`.
 * **Event-Driven Asynchronous Notifications**: Decoupled event publishing via **RabbitMQ** (`NOTIFICATION` direct exchange, durable queues, manual ACK consumer).
 * **Fan-out Feed Aggregation**: Timeline generation aggregating tweets and quote tweets from followed creators plus self.
-* **Auto Hashtag Extraction**: Automatic regex parsing (`#hashtag`) and indexing upon tweet creation.
+* **Auto Hashtag & Mention Extraction**: Automatic regex parsing for `#hashtags` and `@user` mentions with asynchronous notification dispatches.
 * **Threaded Comment Conversations**: Parent-child comment threading with cascade deletion and atomic counter synchronizations.
+* **Pinned Profile Tweets**: Support for pinning a featured tweet to the top of the user profile.
 
 ---
 
@@ -53,14 +54,14 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 | Module | Responsibilities |
 |---|---|
 | **Auth** | User signup, bcrypt password hashing, JWT token authentication, login validation |
-| **User** | User profile fetching, bio updates, follower/following counter tracking |
-| **Tweet** | Tweet creation, quote tweets, hashtags extraction, author ownership authorization |
+| **User** | User profile fetching, bio updates, follower/following counter tracking, pinned tweets |
+| **Tweet** | Tweet creation, quote tweets, hashtags & mentions extraction, pinning, author ownership authorization |
 | **Like** | Toggle tweet likes with ACID transaction + RabbitMQ `LIKE` event notification |
 | **Retweet** | Toggle retweets with ACID transaction + RabbitMQ `RETWEET` event notification |
 | **Bookmark** | Private tweet bookmarks with ACID transaction and paginated saved list |
-| **Comment** | Top-level comments and nested replies, cascade deletion, `COMMENT` event notification |
+| **Comment** | Top-level comments and nested replies, cascade deletion, `COMMENT` and `MENTION` event notifications |
 | **Follow** | Follow/unfollow toggle with atomic counter updates, self-follow guard, followers list |
-| **Hashtag** | Hashtag normalization, indexing, and querying tweets by hashtag |
+| **Hashtag** | Hashtag normalization, indexing, trending aggregation, and querying tweets by hashtag |
 | **Feed** | Fan-out timeline generation for authenticated users |
 | **Search** | Case-insensitive keyword search for tweets and users with pagination |
 | **Message** | 1-on-1 Direct Messaging (DMs), conversation history, and read status |
@@ -74,15 +75,17 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `POST /api/v1/auth/signup` — Register a new account (`userName`, `email`, `password`)
 * `POST /api/v1/auth/signin` — Login and receive JWT (`email`, `password`)
 * `GET /api/v1/users` — List all users
-* `GET /api/v1/users/:id` — Get user profile by ID
+* `GET /api/v1/users/:id` — Get user profile by ID (Populates `pinnedTweet`)
 * `PATCH /api/v1/users/:id` — Update bio/profile (Authorized)
 * `DELETE /api/v1/users/:id` — Delete user account (Authorized)
 
 ### ✍️ Tweets & Quotes
-* `POST /api/v1/tweets/create` — Post a new tweet (Supports `#hashtags` & `quoteTweet: "id"`)
+* `POST /api/v1/tweets/create` — Post a new tweet (Supports `#hashtags`, `@mentions` & `quoteTweet: "id"`)
 * `GET /api/v1/tweets/get/:id` — Get single tweet with author and quoted tweet populated
 * `GET /api/v1/tweets/get` — Get all tweets
-* `GET /api/v1/tweets/user/:userId` — Get tweets authored by a specific user
+* `GET /api/v1/tweets/user/:userId` — Get tweets authored by a specific user (Includes `pinnedTweet`)
+* `POST /api/v1/tweets/pin/:id` — Pin a tweet to user profile (Author only)
+* `POST /api/v1/tweets/unpin` — Unpin current pinned tweet (Author only)
 * `PATCH /api/v1/tweets/update/:id` — Update tweet content (Author only)
 * `DELETE /api/v1/tweets/delete/:id` — Delete tweet (Author only)
 

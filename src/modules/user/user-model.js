@@ -33,6 +33,12 @@ const userSchema = new mongoose.Schema({
     followingCount: {
       type: Number,
       default: 0
+    },
+
+    pinnedTweet: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Tweet',
+      default: null
     }
 },
     { timestamps: true } // created at , updated at

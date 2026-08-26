@@ -7,7 +7,7 @@ class UserRepository {
     }
 
     async getUserById(id) {
-        return await User.findById(id);
+        return await User.findById(id).populate('pinnedTweet');
     }
 
     async getAllUsers() {
@@ -65,6 +65,26 @@ class UserRepository {
             userId,
             { $inc: { followersCount: 1 } },
             { returnDocument: 'after', session }
+        );
+    }
+
+    async getUserByUsername(userName) {
+        return await User.findOne({ userName });
+    }
+
+    async setPinnedTweet(userId, tweetId) {
+        return await User.findByIdAndUpdate(
+            userId,
+            { pinnedTweet: tweetId },
+            { returnDocument: 'after' }
+        );
+    }
+
+    async clearPinnedTweet(userId) {
+        return await User.findByIdAndUpdate(
+            userId,
+            { pinnedTweet: null },
+            { returnDocument: 'after' }
         );
     }
 

@@ -1,11 +1,13 @@
 const TweetRepository = require('./tweet-repository');
 const HashService = require('../hashtag/hashtag-service');
+const UserRepository = require('../user/user-repository');
 const { publishEvent } = require('../../utils/producer');
 
 class TweetService {
     constructor() {
         this.tweetRepository = new TweetRepository();
         this.hashService = new HashService();
+        this.userRepository = new UserRepository();
     }
 
     async create(data) {
@@ -45,6 +47,25 @@ class TweetService {
             const tags = data.content.match(/(#[a-zA-Z0-9_]+)/g);
             if (tags && tags.length > 0) {
                 await this.hashService.processHashtagsFromTweet(tags, tweet._id);
+            }
+        }
+
+        // 5) extract and process mentions (@username)
+        if (data.content) {
+            const mentions = data.content.match(/@([a-zA-Z0-9_]+)/g);
+            if (mentions && mentions.length > 0) {
+                for (let mention of mentions) {
+                    const userName = mention.replace('@', '').trim();
+                    const mentionedUser = await this.userRepository.getUserByUsername(userName);
+                    if (mentionedUser && mentionedUser._id.toString() !== data.author.toString()) {
+                        await publishEvent({
+                            user: mentionedUser._id.toString(),
+                            actor: data.author.toString(),
+                            type: "MENTION",
+                            entityId: tweet._id.toString()
+                        });
+                    }
+                }
             }
         }
 
@@ -101,8 +122,16 @@ class TweetService {
     }
 
     async getTweetsByUser(userId, page = 1, limit = 10) {
+        const user = await this.userRepository.getUserById(userId);
         const result = await this.tweetRepository.getTweetsByUser(userId, page, limit);
+
+        let pinnedTweet = null;
+        if (user && user.pinnedTweet) {
+            pinnedTweet = await this.tweetRepository.getTweetById(user.pinnedTweet);
+        }
+
         return {
+            pinnedTweet,
             tweets: result.tweets,
             pagination: {
                 total: result.total,
@@ -111,6 +140,28 @@ class TweetService {
                 totalPages: Math.ceil(result.total / limit)
             }
         };
+    }
+
+    // Pin tweet to user profile
+    async pinTweet(id, userId) {
+        const tweet = await this.tweetRepository.getTweetById(id);
+        if (!tweet) {
+            throw new Error('Tweet not found');
+        }
+
+        const authorId = tweet.author && tweet.author._id ? tweet.author._id.toString() : tweet.author.toString();
+        if (authorId !== userId.toString()) {
+            throw new Error('Unauthorized to pin this tweet');
+        }
+
+        await this.userRepository.setPinnedTweet(userId, id);
+        return { pinnedTweet: id };
+    }
+
+    // Unpin tweet from profile
+    async unpinTweet(userId) {
+        await this.userRepository.clearPinnedTweet(userId);
+        return { pinnedTweet: null };
     }
 }
 

@@ -1,11 +1,13 @@
 const CommentRepository = require('./comment-repository');
 const TweetRepository = require('../tweet/tweet-repository');
+const UserRepository = require('../user/user-repository');
 const { publishEvent } = require('../../utils/producer');
 
 class CommentService {
     constructor() {
         this.commentRepository = new CommentRepository();
         this.tweetRepository = new TweetRepository();
+        this.userRepository = new UserRepository();
     }
 
     // create comment or reply
@@ -64,6 +66,25 @@ class CommentService {
                     type: "COMMENT",
                     entityId: comment._id.toString()
                 });
+            }
+        }
+
+        // 6) extract and process mentions (@username) in comments
+        if (content) {
+            const mentions = content.match(/@([a-zA-Z0-9_]+)/g);
+            if (mentions && mentions.length > 0) {
+                for (let mention of mentions) {
+                    const userName = mention.replace('@', '').trim();
+                    const mentionedUser = await this.userRepository.getUserByUsername(userName);
+                    if (mentionedUser && mentionedUser._id.toString() !== userId.toString()) {
+                        await publishEvent({
+                            user: mentionedUser._id.toString(),
+                            actor: userId.toString(),
+                            type: "MENTION",
+                            entityId: comment._id.toString()
+                        });
+                    }
+                }
             }
         }
 

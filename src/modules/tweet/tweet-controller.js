@@ -141,6 +141,46 @@ class TweetController {
         }
     }
 
+    // pin tweet
+    async pinTweet(req, res) {
+        try {
+            const result = await this.tweetService.pinTweet(req.params.id, req.user._id);
+            return res.status(200).json({
+                status: "success",
+                message: "Tweet pinned successfully.",
+                data: result,
+                err: {}
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: "error",
+                message: error.message || "Something went wrong while pinning tweet.",
+                data: {},
+                err: error
+            });
+        }
+    }
+
+    // unpin tweet
+    async unpinTweet(req, res) {
+        try {
+            const result = await this.tweetService.unpinTweet(req.user._id);
+            return res.status(200).json({
+                status: "success",
+                message: "Tweet unpinned successfully.",
+                data: result,
+                err: {}
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: "error",
+                message: error.message || "Something went wrong while unpinning tweet.",
+                data: {},
+                err: error
+            });
+        }
+    }
+
 }
 
 module.exports = TweetController;

@@ -17,6 +17,12 @@ router.get('/get/:id', tweetController.get.bind(tweetController));
 // get tweets by user
 router.get('/user/:userId', tweetController.getTweetsByUser.bind(tweetController));
 
+// pin tweet to profile
+router.post('/pin/:id', authentication, tweetController.pinTweet.bind(tweetController));
+
+// unpin tweet from profile
+router.post('/unpin', authentication, tweetController.unpinTweet.bind(tweetController));
+
 // update tweet
 router.patch('/update/:id', authentication, tweetController.update.bind(tweetController));
 
