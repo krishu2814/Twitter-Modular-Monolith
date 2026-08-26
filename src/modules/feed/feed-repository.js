@@ -1,11 +1,13 @@
 const Tweet = require('../tweet/tweet-model');
 const Follow = require('../follow/follow-model');
 const BlockRepository = require('../block/block-repository');
+const MuteRepository = require('../mute/mute-repository');
 const mongoose = require('mongoose');
 
 class FeedRepository {
     constructor() {
         this.blockRepository = new BlockRepository();
+        this.muteRepository = new MuteRepository();
     }
 
     // add pagination to it and suggest changes to feed controller as well
@@ -28,10 +30,17 @@ class FeedRepository {
             followingUserIds = followingUserIds.filter(id => !blockedSet.has(id.toString()));
         }
 
-        // 5. Pagination
+        // 5. Exclude muted users
+        const mutedIds = await this.muteRepository.getMutedIds(userId);
+        if (mutedIds && mutedIds.length > 0) {
+            const mutedSet = new Set(mutedIds.map(id => id.toString()));
+            followingUserIds = followingUserIds.filter(id => !mutedSet.has(id.toString()));
+        }
+
+        // 6. Pagination
         const skip = (page - 1) * limit;
 
-        // 6. Fetch tweets (using 'author' field)
+        // 7. Fetch tweets (using 'author' field)
         const feedTweets = await Tweet.find({
             author: { $in: followingUserIds }
         })

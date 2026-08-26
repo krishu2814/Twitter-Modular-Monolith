@@ -204,6 +204,46 @@ class TweetController {
         }
     }
 
+    // record view impression
+    async recordView(req, res) {
+        try {
+            const result = await this.tweetService.recordView(req.params.id);
+            return res.status(200).json({
+                status: "success",
+                message: "Impression recorded successfully.",
+                data: result,
+                err: {}
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: "error",
+                message: error.message || "Something went wrong while recording impression.",
+                data: {},
+                err: error
+            });
+        }
+    }
+
+    // get tweet analytics
+    async getAnalytics(req, res) {
+        try {
+            const result = await this.tweetService.getAnalytics(req.params.id, req.user._id);
+            return res.status(200).json({
+                status: "success",
+                message: "Analytics fetched successfully.",
+                data: result,
+                err: {}
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: "error",
+                message: error.message || "Something went wrong while fetching analytics.",
+                data: {},
+                err: error
+            });
+        }
+    }
+
 }
 
 module.exports = TweetController;

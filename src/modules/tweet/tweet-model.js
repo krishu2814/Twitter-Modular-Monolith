@@ -27,6 +27,10 @@ const tweetSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    viewsCount: {
+        type: Number,
+        default: 0
+    },
     // if tweet is a quote tweet
     quoteTweet: {
         type: mongoose.Schema.Types.ObjectId,

@@ -218,6 +218,52 @@ class TweetService {
         const updatedTweet = await this.tweetRepository.votePoll(tweetId, idx, userId);
         return updatedTweet.poll;
     }
+
+    // Record view impression on a tweet
+    async recordView(tweetId) {
+        const tweet = await this.tweetRepository.getTweetById(tweetId);
+        if (!tweet) {
+            throw new Error('Tweet not found');
+        }
+        const updated = await this.tweetRepository.incrementViews(tweetId);
+        return { tweetId, viewsCount: updated.viewsCount };
+    }
+
+    // Get tweet engagement analytics
+    async getAnalytics(tweetId, userId) {
+        const tweet = await this.tweetRepository.getTweetById(tweetId);
+        if (!tweet) {
+            throw new Error('Tweet not found');
+        }
+
+        const authorId = tweet.author && tweet.author._id ? tweet.author._id.toString() : tweet.author.toString();
+        if (authorId !== userId.toString()) {
+            throw new Error('Unauthorized: only the tweet author can view detailed analytics');
+        }
+
+        const views = tweet.viewsCount || 0;
+        const likes = tweet.likesCount || 0;
+        const retweets = tweet.retweetsCount || 0;
+        const comments = tweet.commentsCount || 0;
+        const bookmarks = tweet.bookmarksCount || 0;
+        const totalEngagements = likes + retweets + comments + bookmarks;
+        const engagementRate = views > 0 ? ((totalEngagements / views) * 100).toFixed(2) + '%' : '0.00%';
+
+        return {
+            tweetId: tweet._id,
+            content: tweet.content,
+            createdAt: tweet.createdAt,
+            metrics: {
+                viewsCount: views,
+                likesCount: likes,
+                retweetsCount: retweets,
+                commentsCount: comments,
+                bookmarksCount: bookmarks,
+                totalEngagements
+            },
+            engagementRate
+        };
+    }
 }
 
 module.exports = TweetService;

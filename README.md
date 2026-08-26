@@ -67,6 +67,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 | **Search** | Case-insensitive keyword search for tweets and users with pagination |
 | **Message** | 1-on-1 Direct Messaging (DMs), conversation history, and read status |
 | **Block** | User blocking/unblocking with ACID transaction, auto-unfollow, DM & feed exclusion |
+| **Mute** | Stealth muting/unmuting of users with automatic feed timeline suppression |
 | **List** | Twitter Lists creation, member management, privacy controls, and dedicated member feeds |
 | **Notification** | Async consumption from RabbitMQ, mark single/all notifications as read |
 
@@ -88,6 +89,8 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `GET /api/v1/tweets/get` — Get all tweets
 * `GET /api/v1/tweets/user/:userId` — Get tweets authored by a specific user (Includes `pinnedTweet`)
 * `POST /api/v1/tweets/:id/poll/vote` — Vote on a tweet poll (`optionIndex: 0`)
+* `POST /api/v1/tweets/:id/view` — Record a view impression on a tweet
+* `GET /api/v1/tweets/:id/analytics` — Get tweet views, total engagements, and engagement rate (Author only)
 * `POST /api/v1/tweets/pin/:id` — Pin a tweet to user profile (Author only)
 * `POST /api/v1/tweets/unpin` — Unpin current pinned tweet (Author only)
 * `PATCH /api/v1/tweets/update/:id` — Update tweet content (Author only)
@@ -128,6 +131,10 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 ### 🚫 Blocks & Safety
 * `POST /api/v1/blocks/toggle/:userId` — Block or unblock a user (ACID Transaction + Auto-Unfollow)
 * `GET /api/v1/blocks` — List all users currently blocked by me
+
+### 🔇 Mutes & Stealth Moderation
+* `POST /api/v1/mutes/toggle/:userId` — Mute or unmute a target user
+* `GET /api/v1/mutes` — List all users currently muted by me
 
 ### 📋 Lists & Curated Feeds
 * `POST /api/v1/lists` — Create a new List (`name`, `description`, `isPrivate`, `members`)

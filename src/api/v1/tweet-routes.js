@@ -26,6 +26,12 @@ router.post('/unpin', authentication, tweetController.unpinTweet.bind(tweetContr
 // vote on poll
 router.post('/:id/poll/vote', authentication, tweetController.votePoll.bind(tweetController));
 
+// record view impression
+router.post('/:id/view', tweetController.recordView.bind(tweetController));
+
+// get tweet analytics (author only)
+router.get('/:id/analytics', authentication, tweetController.getAnalytics.bind(tweetController));
+
 // update tweet
 router.patch('/update/:id', authentication, tweetController.update.bind(tweetController));
 

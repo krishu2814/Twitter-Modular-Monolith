@@ -104,6 +104,14 @@ class TweetRepository {
             { returnDocument: 'after' }
         );
     }
+
+    async incrementViews(id) {
+        return await Tweet.findByIdAndUpdate(
+            id,
+            { $inc: { viewsCount: 1 } },
+            { returnDocument: 'after' }
+        );
+    }
 }
 
 module.exports = TweetRepository;
