@@ -69,6 +69,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 | **Block** | User blocking/unblocking with ACID transaction, auto-unfollow, DM & feed exclusion |
 | **Mute** | Stealth muting/unmuting of users with automatic feed timeline suppression |
 | **List** | Twitter Lists creation, member management, privacy controls, and dedicated member feeds |
+| **ScheduledTweet** | Future tweet scheduling, cancellation, status lifecycle, and auto-publishing engine |
 | **Notification** | Async consumption from RabbitMQ, mark single/all notifications as read |
 
 ---
@@ -95,6 +96,12 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `POST /api/v1/tweets/unpin` — Unpin current pinned tweet (Author only)
 * `PATCH /api/v1/tweets/update/:id` — Update tweet content (Author only)
 * `DELETE /api/v1/tweets/delete/:id` — Delete tweet (Author only)
+
+### ⏱️ Scheduled Tweets
+* `POST /api/v1/scheduled-tweets` — Schedule a new tweet (`content`, `scheduledFor`, `media`)
+* `GET /api/v1/scheduled-tweets/me` — Get all scheduled tweets by the authenticated user
+* `DELETE /api/v1/scheduled-tweets/:id` — Cancel a scheduled tweet (Author only)
+* `POST /api/v1/scheduled-tweets/process-due` — Process and publish all due scheduled tweets
 
 ### ❤️ Likes, 🔁 Retweets & 🔖 Bookmarks
 * `POST /api/v1/likes/:tweetId` — Toggle like/unlike (ACID Transaction + Event)
