@@ -46,6 +46,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * **Auto Hashtag & Mention Extraction**: Automatic regex parsing for `#hashtags` and `@user` mentions with asynchronous notification dispatches.
 * **Threaded Comment Conversations**: Parent-child comment threading with cascade deletion and atomic counter synchronizations.
 * **Pinned Profile Tweets**: Support for pinning a featured tweet to the top of the user profile.
+* **Interactive Tweet Polls**: Create 2-4 option polls with single-vote enforcement, real-time tallying, and expiration dates.
 
 ---
 
@@ -55,7 +56,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 |---|---|
 | **Auth** | User signup, bcrypt password hashing, JWT token authentication, login validation |
 | **User** | User profile fetching, bio updates, follower/following counter tracking, pinned tweets |
-| **Tweet** | Tweet creation, quote tweets, hashtags & mentions extraction, pinning, author ownership authorization |
+| **Tweet** | Tweet creation, polls, quote tweets, hashtags & mentions extraction, pinning, author authorization |
 | **Like** | Toggle tweet likes with ACID transaction + RabbitMQ `LIKE` event notification |
 | **Retweet** | Toggle retweets with ACID transaction + RabbitMQ `RETWEET` event notification |
 | **Bookmark** | Private tweet bookmarks with ACID transaction and paginated saved list |
@@ -79,11 +80,12 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `PATCH /api/v1/users/:id` — Update bio/profile (Authorized)
 * `DELETE /api/v1/users/:id` — Delete user account (Authorized)
 
-### ✍️ Tweets & Quotes
-* `POST /api/v1/tweets/create` — Post a new tweet (Supports `#hashtags`, `@mentions` & `quoteTweet: "id"`)
-* `GET /api/v1/tweets/get/:id` — Get single tweet with author and quoted tweet populated
+### ✍️ Tweets, Quotes & Polls
+* `POST /api/v1/tweets/create` — Post a new tweet (Supports `#hashtags`, `@mentions`, `quoteTweet: "id"` & `poll: { options: [] }`)
+* `GET /api/v1/tweets/get/:id` — Get single tweet with author, quoted tweet, and poll details
 * `GET /api/v1/tweets/get` — Get all tweets
 * `GET /api/v1/tweets/user/:userId` — Get tweets authored by a specific user (Includes `pinnedTweet`)
+* `POST /api/v1/tweets/:id/poll/vote` — Vote on a tweet poll (`optionIndex: 0`)
 * `POST /api/v1/tweets/pin/:id` — Pin a tweet to user profile (Author only)
 * `POST /api/v1/tweets/unpin` — Unpin current pinned tweet (Author only)
 * `PATCH /api/v1/tweets/update/:id` — Update tweet content (Author only)

@@ -11,7 +11,8 @@ class TweetController {
             const tweetData = {
                 content: req.body.content,
                 author: req.user._id,
-                quoteTweet: req.body.quoteTweet || null
+                quoteTweet: req.body.quoteTweet || null,
+                poll: req.body.poll || null
             };
             const tweet = await this.tweetService.create(tweetData);
             return res.status(201).json({
@@ -175,6 +176,27 @@ class TweetController {
             return res.status(500).json({
                 status: "error",
                 message: error.message || "Something went wrong while unpinning tweet.",
+                data: {},
+                err: error
+            });
+        }
+    }
+
+    // vote on poll
+    async votePoll(req, res) {
+        try {
+            const { optionIndex } = req.body;
+            const result = await this.tweetService.votePoll(req.params.id, req.user._id, optionIndex);
+            return res.status(200).json({
+                status: "success",
+                message: "Vote recorded successfully.",
+                data: result,
+                err: {}
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: "error",
+                message: error.message || "Something went wrong while voting on poll.",
                 data: {},
                 err: error
             });

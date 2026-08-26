@@ -32,6 +32,22 @@ const tweetSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tweet',
         default: null
+    },
+    // tweet poll
+    poll: {
+        question: {
+            type: String,
+            default: null
+        },
+        options: [{
+            text: { type: String, required: true },
+            votes: { type: Number, default: 0 },
+            voters: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+        }],
+        expiresAt: {
+            type: Date,
+            default: null
+        }
     }
 }, { timestamps: true }
 

@@ -93,6 +93,17 @@ class TweetRepository {
         const total = await Tweet.countDocuments({ author: userId });
         return { tweets, total };
     }
+
+    async votePoll(tweetId, optionIndex, userId) {
+        return await Tweet.findOneAndUpdate(
+            { _id: tweetId },
+            {
+                $inc: { [`poll.options.${optionIndex}.votes`]: 1 },
+                $push: { [`poll.options.${optionIndex}.voters`]: userId }
+            },
+            { returnDocument: 'after' }
+        );
+    }
 }
 
 module.exports = TweetRepository;

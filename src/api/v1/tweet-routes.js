@@ -23,6 +23,9 @@ router.post('/pin/:id', authentication, tweetController.pinTweet.bind(tweetContr
 // unpin tweet from profile
 router.post('/unpin', authentication, tweetController.unpinTweet.bind(tweetController));
 
+// vote on poll
+router.post('/:id/poll/vote', authentication, tweetController.votePoll.bind(tweetController));
+
 // update tweet
 router.patch('/update/:id', authentication, tweetController.update.bind(tweetController));
 

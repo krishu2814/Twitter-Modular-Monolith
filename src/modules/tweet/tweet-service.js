@@ -20,7 +20,24 @@ class TweetService {
             }
         }
 
-        // 2) create the new tweet
+        // 2) format poll if provided
+        if (data.poll && data.poll.options) {
+            if (!Array.isArray(data.poll.options) || data.poll.options.length < 2 || data.poll.options.length > 4) {
+                throw new Error('Poll must have between 2 and 4 options');
+            }
+
+            data.poll = {
+                question: data.poll.question || data.content,
+                options: data.poll.options.map(opt => ({
+                    text: typeof opt === 'string' ? opt.trim() : opt.text,
+                    votes: 0,
+                    voters: []
+                })),
+                expiresAt: data.poll.expiresAt ? new Date(data.poll.expiresAt) : new Date(Date.now() + 24 * 60 * 60 * 1000)
+            };
+        }
+
+        // 3) create the new tweet
         const tweet = await this.tweetRepository.createTweet(data);
 
         // 3) if quote tweet, increment retweetsCount on quoted tweet & publish event
@@ -162,6 +179,44 @@ class TweetService {
     async unpinTweet(userId) {
         await this.userRepository.clearPinnedTweet(userId);
         return { pinnedTweet: null };
+    }
+
+    // Vote on a tweet poll
+    async votePoll(tweetId, userId, optionIndex) {
+        // 1) verify tweet exists
+        const tweet = await this.tweetRepository.getTweetById(tweetId);
+        if (!tweet) {
+            throw new Error('Tweet not found');
+        }
+
+        // 2) verify tweet has an active poll
+        if (!tweet.poll || !tweet.poll.options || tweet.poll.options.length === 0) {
+            throw new Error('This tweet does not contain a poll');
+        }
+
+        // 3) check poll expiration
+        if (tweet.poll.expiresAt && new Date() > new Date(tweet.poll.expiresAt)) {
+            throw new Error('This poll has expired');
+        }
+
+        // 4) check if optionIndex is valid
+        const idx = parseInt(optionIndex);
+        if (isNaN(idx) || idx < 0 || idx >= tweet.poll.options.length) {
+            throw new Error('Invalid poll option index');
+        }
+
+        // 5) check if user has already voted in this poll
+        const hasVoted = tweet.poll.options.some(opt =>
+            opt.voters && opt.voters.some(voterId => voterId.toString() === userId.toString())
+        );
+
+        if (hasVoted) {
+            throw new Error('You have already voted in this poll');
+        }
+
+        // 6) record vote
+        const updatedTweet = await this.tweetRepository.votePoll(tweetId, idx, userId);
+        return updatedTweet.poll;
     }
 }
 
