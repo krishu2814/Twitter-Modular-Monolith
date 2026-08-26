@@ -12,7 +12,8 @@ class TweetController {
                 content: req.body.content,
                 author: req.user._id,
                 quoteTweet: req.body.quoteTweet || null,
-                poll: req.body.poll || null
+                poll: req.body.poll || null,
+                media: req.body.media || []
             };
             const tweet = await this.tweetService.create(tweetData);
             return res.status(201).json({

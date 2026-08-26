@@ -66,6 +66,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 | **Feed** | Fan-out timeline generation for authenticated users |
 | **Search** | Case-insensitive keyword search for tweets and users with pagination |
 | **Message** | 1-on-1 Direct Messaging (DMs), conversation history, and read status |
+| **Block** | User blocking/unblocking with ACID transaction, auto-unfollow, DM & feed exclusion |
 | **Notification** | Async consumption from RabbitMQ, mark single/all notifications as read |
 
 ---
@@ -81,7 +82,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `DELETE /api/v1/users/:id` — Delete user account (Authorized)
 
 ### ✍️ Tweets, Quotes & Polls
-* `POST /api/v1/tweets/create` — Post a new tweet (Supports `#hashtags`, `@mentions`, `quoteTweet: "id"` & `poll: { options: [] }`)
+* `POST /api/v1/tweets/create` — Post a new tweet (Supports `#hashtags`, `@mentions`, `media: []`, `quoteTweet: "id"` & `poll: { options: [] }`)
 * `GET /api/v1/tweets/get/:id` — Get single tweet with author, quoted tweet, and poll details
 * `GET /api/v1/tweets/get` — Get all tweets
 * `GET /api/v1/tweets/user/:userId` — Get tweets authored by a specific user (Includes `pinnedTweet`)
@@ -122,6 +123,10 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `GET /api/v1/messages/conversations` — Get list of recent chat conversations
 * `GET /api/v1/messages/conversation/:userId` — Get chat history with a specific user
 * `PATCH /api/v1/messages/:messageId/read` — Mark a message as read
+
+### 🚫 Blocks & Safety
+* `POST /api/v1/blocks/toggle/:userId` — Block or unblock a user (ACID Transaction + Auto-Unfollow)
+* `GET /api/v1/blocks` — List all users currently blocked by me
 
 ### 🔔 Notifications
 * `GET /api/v1/notifications?page=1&limit=10` — List async notifications

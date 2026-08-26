@@ -1,17 +1,25 @@
 const mongoose = require('mongoose');
 const FollowRepository = require('./follow-repository');
 const UserRepository = require('../user/user-repository');
+const BlockRepository = require('../block/block-repository');
 const { publishEvent } = require('../../utils/producer');
 
 class FollowService {
     constructor() {
         this.followRepository = new FollowRepository();
         this.userRepository = new UserRepository();
+        this.blockRepository = new BlockRepository();
     }
 
     async toggleFollow(followerId, followingId) {
         if (followerId.toString() === followingId.toString()) {
             throw new Error('User cannot follow themselves.');
+        }
+
+        // Check if either user is blocked
+        const isBlocked = await this.blockRepository.isBlockedEither(followerId, followingId);
+        if (isBlocked) {
+            throw new Error('Cannot follow this user due to block restrictions');
         }
 
         // Verify target user exists

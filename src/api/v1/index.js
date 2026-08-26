@@ -13,6 +13,7 @@ const retweetRoutes = require('./retweet-routes');
 const searchRoutes = require('./search-routes');
 const bookmarkRoutes = require('./bookmark-routes');
 const messageRoutes = require('./message-routes');
+const blockRoutes = require('./block-routes');
 
 const router = express.Router();
 
@@ -29,5 +30,6 @@ router.use('/feeds', feedRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/search', searchRoutes);
 router.use('/messages', messageRoutes);
+router.use('/blocks', blockRoutes);
 
 module.exports = router;

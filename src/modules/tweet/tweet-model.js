@@ -33,6 +33,18 @@ const tweetSchema = new mongoose.Schema({
         ref: 'Tweet',
         default: null
     },
+    // media attachments (images, gifs, videos)
+    media: [{
+        url: {
+            type: String,
+            required: true
+        },
+        type: {
+            type: String,
+            enum: ['IMAGE', 'GIF', 'VIDEO'],
+            default: 'IMAGE'
+        }
+    }],
     // tweet poll
     poll: {
         question: {

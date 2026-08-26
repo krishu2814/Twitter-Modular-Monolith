@@ -1,11 +1,13 @@
 const MessageRepository = require('./message-repository');
 const UserRepository = require('../user/user-repository');
+const BlockRepository = require('../block/block-repository');
 const { publishEvent } = require('../../utils/producer');
 
 class MessageService {
     constructor() {
         this.messageRepository = new MessageRepository();
         this.userRepository = new UserRepository();
+        this.blockRepository = new BlockRepository();
     }
 
     // 1) send a direct message
@@ -13,6 +15,12 @@ class MessageService {
         // self-message check
         if (senderId.toString() === receiverId.toString()) {
             throw new Error("Cannot send a message to yourself");
+        }
+
+        // check if either user has blocked the other
+        const isBlocked = await this.blockRepository.isBlockedEither(senderId, receiverId);
+        if (isBlocked) {
+            throw new Error("Cannot send message to this user due to block restrictions");
         }
 
         // verify receiver exists
