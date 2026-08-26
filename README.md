@@ -59,7 +59,7 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 | **Tweet** | Tweet creation, polls, quote tweets, hashtags & mentions extraction, pinning, author authorization |
 | **Like** | Toggle tweet likes with ACID transaction + RabbitMQ `LIKE` event notification |
 | **Retweet** | Toggle retweets with ACID transaction + RabbitMQ `RETWEET` event notification |
-| **Bookmark** | Private tweet bookmarks with ACID transaction and paginated saved list |
+| **Bookmark** | Private tweet bookmarks with ACID transaction, saved list, and custom categorized Folders/Collections |
 | **Comment** | Top-level comments and nested replies, cascade deletion, `COMMENT` and `MENTION` event notifications |
 | **Follow** | Follow/unfollow toggle with atomic counter updates, self-follow guard, followers list |
 | **Hashtag** | Hashtag normalization, indexing, trending aggregation, and querying tweets by hashtag |
@@ -105,13 +105,21 @@ A production-grade, event-driven **Twitter backend** built with **Node.js**, **E
 * `DELETE /api/v1/scheduled-tweets/:id` — Cancel a scheduled tweet (Author only)
 * `POST /api/v1/scheduled-tweets/process-due` — Process and publish all due scheduled tweets
 
-### ❤️ Likes, 🔁 Retweets & 🔖 Bookmarks
+### ❤️ Likes, 🔁 Retweets & 🔖 Bookmarks & Folders
 * `POST /api/v1/likes/:tweetId` — Toggle like/unlike (ACID Transaction + Event)
 * `POST /api/v1/retweets/:tweetId` — Toggle retweet/unretweet (ACID Transaction + Event)
 * `GET /api/v1/retweets/tweet/:tweetId` — Get users who retweeted a tweet
 * `GET /api/v1/retweets/user/:userId` — Get tweets retweeted by a user
 * `POST /api/v1/bookmarks/:tweetId` — Toggle bookmark (Private)
 * `GET /api/v1/bookmarks` — List my bookmarked tweets (Paginated)
+* `POST /api/v1/bookmarks/folders` — Create a new bookmark folder (`name`, `description`, `icon`, `color`)
+* `GET /api/v1/bookmarks/folders` — List all bookmark folders owned by user
+* `GET /api/v1/bookmarks/folders/:folderId` — Get folder details
+* `PATCH /api/v1/bookmarks/folders/:folderId` — Update folder details
+* `DELETE /api/v1/bookmarks/folders/:folderId` — Delete bookmark folder (Owner only)
+* `POST /api/v1/bookmarks/folders/:folderId/tweets/:tweetId` — Add tweet to bookmark folder
+* `DELETE /api/v1/bookmarks/folders/:folderId/tweets/:tweetId` — Remove tweet from bookmark folder
+* `GET /api/v1/bookmarks/folders/:folderId/tweets` — View all tweets in folder (Paginated)
 
 ### 👥 Follow & Feeds
 * `POST /api/v1/follows/toggle/:id` — Follow/unfollow target user (ACID Transaction + Event)
