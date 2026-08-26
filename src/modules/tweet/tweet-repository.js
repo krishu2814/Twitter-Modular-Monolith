@@ -42,6 +42,38 @@ class TweetRepository {
             { returnDocument: 'after' }
         );
     }
+
+    async incrementTweetComments(id, session = null) {
+        return await Tweet.findByIdAndUpdate(
+            id,
+            { $inc: { commentsCount: 1 } },
+            { returnDocument: 'after', session }
+        );
+    }
+
+    async decrementTweetComments(id, count = 1, session = null) {
+        return await Tweet.findByIdAndUpdate(
+            id,
+            { $inc: { commentsCount: -count } },
+            { returnDocument: 'after', session }
+        );
+    }
+
+    async incrementTweetBookmarks(id, session = null) {
+        return await Tweet.findByIdAndUpdate(
+            id,
+            { $inc: { bookmarksCount: 1 } },
+            { returnDocument: 'after', session }
+        );
+    }
+
+    async decrementTweetBookmarks(id, session = null) {
+        return await Tweet.findByIdAndUpdate(
+            id,
+            { $inc: { bookmarksCount: -1 } },
+            { returnDocument: 'after', session }
+        );
+    }
 }
 
 module.exports = TweetRepository;

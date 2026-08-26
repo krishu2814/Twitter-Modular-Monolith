@@ -24,4 +24,10 @@ router.delete('/:commentId', authentication, commentController.deleteComment.bin
  */
 router.get('/tweet/:tweetId', commentController.getCommentsByTweet.bind(commentController));
 
+/**
+ * GET REPLIES OF A COMMENT
+ * GET /comments/:commentId/replies
+ */
+router.get('/:commentId/replies', commentController.getReplies.bind(commentController));
+
 module.exports = router;

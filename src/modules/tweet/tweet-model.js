@@ -19,6 +19,14 @@ const tweetSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    commentsCount: {
+        type: Number,
+        default: 0
+    },
+    bookmarksCount: {
+        type: Number,
+        default: 0
+    },
     // if tweet is a quote tweet
     quoteTweet: {
         type: mongoose.Schema.Types.ObjectId,

@@ -16,6 +16,12 @@ const commentSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tweet',
         required: true
+    },
+    // if this comment is a reply to another comment (threaded)
+    parentComment: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Comment',
+        default: null
     }
 }, { timestamps: true }
 

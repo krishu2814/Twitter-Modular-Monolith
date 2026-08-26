@@ -6,17 +6,18 @@ class CommentController {
         this.commentService = new CommentService();
     }
 
+    // POST /api/v1/comments/tweet/:tweetId
     async createComment(req, res) {
         try {
-
-            const { content } = req.body; // in body -> JSON
-            const tweetId = req.params.tweetId; // in params url
-            const userId = req.user._id; // authentication
+            const { content, parentComment } = req.body;
+            const tweetId = req.params.tweetId;
+            const userId = req.user._id;
 
             const comment = await this.commentService.createComment(
                 content,
                 userId,
-                tweetId
+                tweetId,
+                parentComment || null
             );
 
             return res.status(201).json({
@@ -27,20 +28,18 @@ class CommentController {
             });
 
         } catch (error) {
-
             return res.status(500).json({
                 success: false,
-                message: "Unable to create comment",
+                message: error.message || "Unable to create comment",
                 data: {},
                 err: error.message
             });
-
         }
     }
 
+    // DELETE /api/v1/comments/:commentId
     async deleteComment(req, res) {
         try {
-
             const { commentId } = req.params;
             const userId = req.user._id;
 
@@ -54,22 +53,19 @@ class CommentController {
             });
 
         } catch (error) {
-
             return res.status(500).json({
                 success: false,
-                message: "Unable to delete comment",
+                message: error.message || "Unable to delete comment",
                 data: {},
                 err: error.message
             });
-
         }
     }
 
+    // GET /api/v1/comments/tweet/:tweetId
     async getCommentsByTweet(req, res) {
         try {
-
             const { tweetId } = req.params;
-
             const page = Math.max(1, parseInt(req.query.page) || 1);
             const limit = Math.min(50, parseInt(req.query.limit) || 10);
 
@@ -83,14 +79,38 @@ class CommentController {
             });
 
         } catch (error) {
-
             return res.status(500).json({
                 success: false,
-                message: "Unable to fetch comments",
+                message: error.message || "Unable to fetch comments",
                 data: {},
                 err: error.message
             });
+        }
+    }
 
+    // GET /api/v1/comments/:commentId/replies
+    async getReplies(req, res) {
+        try {
+            const { commentId } = req.params;
+            const page = Math.max(1, parseInt(req.query.page) || 1);
+            const limit = Math.min(50, parseInt(req.query.limit) || 10);
+
+            const replies = await this.commentService.getReplies(commentId, page, limit);
+
+            return res.status(200).json({
+                success: true,
+                message: "Replies fetched successfully",
+                data: replies,
+                err: {}
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                success: false,
+                message: error.message || "Unable to fetch replies",
+                data: {},
+                err: error.message
+            });
         }
     }
 }
