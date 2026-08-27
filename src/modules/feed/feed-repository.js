@@ -40,20 +40,21 @@ class FeedRepository {
         // 6. Pagination
         const skip = (page - 1) * limit;
 
-        // 7. Fetch tweets (using 'author' field)
+        // 7. Fetch tweets (using 'author' field, excluding thread continuation child tweets)
         const feedTweets = await Tweet.find({
             author: { $in: followingUserIds },
-            isHidden: { $ne: true }
+            isHidden: { $ne: true },
+            $or: [{ parentTweet: null }, { parentTweet: { $exists: false } }]
         })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate('author', 'userName profileImage')
+        .populate('author', 'userName profileImage isVerified badgeType')
         .populate({
             path: 'quoteTweet',
             populate: {
                 path: 'author',
-                select: 'userName profileImage'
+                select: 'userName profileImage isVerified badgeType'
             }
         })
         .lean();
@@ -79,7 +80,8 @@ class FeedRepository {
 
         const tweets = await Tweet.find({
             author: { $in: verifiedUserIds },
-            isHidden: { $ne: true }
+            isHidden: { $ne: true },
+            $or: [{ parentTweet: null }, { parentTweet: { $exists: false } }]
         })
             .sort({ createdAt: -1 })
             .skip(skip)

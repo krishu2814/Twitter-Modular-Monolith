@@ -65,6 +65,52 @@ const tweetSchema = new mongoose.Schema({
             default: null
         }
     },
+    // Thread fields
+    parentTweet: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tweet',
+        default: null
+    },
+    threadHead: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Tweet',
+        default: null
+    },
+    threadPosition: {
+        type: Number,
+        default: 1
+    },
+    isThread: {
+        type: Boolean,
+        default: false
+    },
+    threadLength: {
+        type: Number,
+        default: 1
+    },
+    // Edit fields & history audit trail
+    isEdited: {
+        type: Boolean,
+        default: false
+    },
+    editedAt: {
+        type: Date,
+        default: null
+    },
+    editHistory: [{
+        content: {
+            type: String,
+            required: true
+        },
+        media: [{
+            url: { type: String, required: true },
+            type: { type: String, enum: ['IMAGE', 'GIF', 'VIDEO'], default: 'IMAGE' }
+        }],
+        editedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
     // Moderation & safety fields
     reportsCount: {
         type: Number,
@@ -81,6 +127,11 @@ const tweetSchema = new mongoose.Schema({
 }, { timestamps: true }
 
 );
+
+// Compound indexes for thread lookups and feed queries
+tweetSchema.index({ threadHead: 1, threadPosition: 1 });
+tweetSchema.index({ parentTweet: 1 });
+tweetSchema.index({ author: 1, createdAt: -1 });
 
 const Tweet = mongoose.model('Tweet', tweetSchema);
 

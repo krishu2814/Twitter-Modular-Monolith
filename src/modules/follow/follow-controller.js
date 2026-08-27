@@ -19,7 +19,8 @@ class FollowController {
                 err: {}
             });
         } catch (error) {
-            return res.status(500).json({
+            const statusCode = (error.message.includes('cannot follow themselves') || error.message.includes('not found') || error.message.includes('block')) ? 400 : 500;
+            return res.status(statusCode).json({
                 status: "error",
                 message: error.message || "Cannot toggle follow.",
                 data: {},

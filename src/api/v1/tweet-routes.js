@@ -32,6 +32,15 @@ router.post('/:id/view', tweetController.recordView.bind(tweetController));
 // get tweet analytics (author only)
 router.get('/:id/analytics', authentication, tweetController.getAnalytics.bind(tweetController));
 
+// create multi-tweet thread
+router.post('/thread', authentication, tweetController.createThread.bind(tweetController));
+
+// get tweet thread
+router.get('/:id/thread', tweetController.getThread.bind(tweetController));
+
+// edit tweet with 30-minute grace window
+router.patch('/:id/edit', authentication, tweetController.editTweet.bind(tweetController));
+
 // update tweet
 router.patch('/update/:id', authentication, tweetController.update.bind(tweetController));
 

@@ -244,6 +244,75 @@ class TweetController {
         }
     }
 
+    // create multi-tweet thread: POST /api/v1/tweets/thread
+    async createThread(req, res) {
+        try {
+            const authorId = req.user._id;
+            const result = await this.tweetService.createThread(authorId, req.body);
+            return res.status(201).json({
+                status: "success",
+                message: "Tweet thread published successfully.",
+                data: result,
+                err: {}
+            });
+        } catch (error) {
+            return res.status(error.message && (error.message.includes('Thread must contain') || error.message.includes('cannot have empty content')) ? 400 : 500).json({
+                status: "error",
+                message: error.message || "Something went wrong while publishing the tweet thread.",
+                data: {},
+                err: error.message
+            });
+        }
+    }
+
+    // get tweet thread: GET /api/v1/tweets/:id/thread
+    async getThread(req, res) {
+        try {
+            const result = await this.tweetService.getThread(req.params.id);
+            return res.status(200).json({
+                status: "success",
+                message: "Tweet thread fetched successfully.",
+                data: result,
+                err: {}
+            });
+        } catch (error) {
+            return res.status(error.message === 'Tweet not found' ? 404 : 500).json({
+                status: "error",
+                message: error.message || "Something went wrong while fetching the tweet thread.",
+                data: {},
+                err: error.message
+            });
+        }
+    }
+
+    // edit tweet with 30-minute grace window: PATCH /api/v1/tweets/:id/edit
+    async editTweet(req, res) {
+        try {
+            const tweetId = req.params.id;
+            const userId = req.user._id;
+            const updatedTweet = await this.tweetService.editTweet(tweetId, userId, req.body);
+            return res.status(200).json({
+                status: "success",
+                message: "Tweet edited successfully.",
+                data: updatedTweet,
+                err: {}
+            });
+        } catch (error) {
+            const isGraceExpired = error.message && error.message.includes('grace window');
+            const isUnauthorized = error.message && error.message.includes('Unauthorized');
+            const isNotFound = error.message === 'Tweet not found';
+            const isValidationError = error.message && (error.message.includes('empty') || error.message.includes('required') || error.message.includes('Invalid'));
+            const statusCode = isUnauthorized ? 403 : (isGraceExpired || isNotFound || isValidationError ? 400 : 500);
+
+            return res.status(statusCode).json({
+                status: "error",
+                message: error.message || "Something went wrong while editing the tweet.",
+                data: {},
+                err: error.message
+            });
+        }
+    }
+
 }
 
 module.exports = TweetController;

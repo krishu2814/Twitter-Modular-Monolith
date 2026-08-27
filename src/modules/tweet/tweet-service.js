@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const TweetRepository = require('./tweet-repository');
 const HashService = require('../hashtag/hashtag-service');
 const UserRepository = require('../user/user-repository');
@@ -263,6 +264,182 @@ class TweetService {
             },
             engagementRate
         };
+    }
+
+    // Create a multi-tweet thread atomically (2-10 tweets)
+    async createThread(authorId, data) {
+        if (!data || !Array.isArray(data.tweets) || data.tweets.length < 2 || data.tweets.length > 10) {
+            throw new Error('Thread must contain between 2 and 10 tweets');
+        }
+
+        // Validate each tweet item
+        for (let i = 0; i < data.tweets.length; i++) {
+            const item = data.tweets[i];
+            if (!item || !item.content || item.content.trim() === '') {
+                throw new Error(`Tweet at position ${i + 1} cannot have empty content`);
+            }
+        }
+
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+            const createdTweets = [];
+            let rootTweet = null;
+            const threadLength = data.tweets.length;
+
+            for (let i = 0; i < threadLength; i++) {
+                const item = data.tweets[i];
+                const tweetData = {
+                    content: item.content.trim(),
+                    author: authorId,
+                    media: Array.isArray(item.media) ? item.media : [],
+                    quoteTweet: item.quoteTweet || null,
+                    isThread: true,
+                    threadLength: threadLength,
+                    threadPosition: i + 1,
+                    parentTweet: i === 0 ? null : createdTweets[i - 1]._id,
+                    threadHead: i === 0 ? null : rootTweet._id
+                };
+
+                const tweet = await this.tweetRepository.createTweetWithSession(tweetData, session);
+                if (i === 0) {
+                    rootTweet = tweet;
+                }
+                createdTweets.push(tweet);
+            }
+
+            await session.commitTransaction();
+            session.endSession();
+
+            // Asynchronously process hashtags and mentions for all created tweets
+            for (const tweet of createdTweets) {
+                if (tweet.content) {
+                    const tags = tweet.content.match(/(#[a-zA-Z0-9_]+)/g);
+                    if (tags && tags.length > 0) {
+                        await this.hashService.processHashtagsFromTweet(tags, tweet._id);
+                    }
+
+                    const mentions = tweet.content.match(/@([a-zA-Z0-9_]+)/g);
+                    if (mentions && mentions.length > 0) {
+                        for (let mention of mentions) {
+                            const userName = mention.replace('@', '').trim();
+                            const mentionedUser = await this.userRepository.getUserByUsername(userName);
+                            if (mentionedUser && mentionedUser._id.toString() !== authorId.toString()) {
+                                await publishEvent({
+                                    user: mentionedUser._id.toString(),
+                                    actor: authorId.toString(),
+                                    type: "MENTION",
+                                    entityId: tweet._id.toString()
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            return {
+                rootTweetId: rootTweet._id,
+                threadLength,
+                thread: createdTweets
+            };
+        } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }
+    }
+
+    // Get the sequential thread conversation chain
+    async getThread(tweetId) {
+        const tweet = await this.tweetRepository.getTweetById(tweetId);
+        if (!tweet) {
+            throw new Error('Tweet not found');
+        }
+
+        // Determine the root tweet ID
+        let rootTweetId = tweet._id;
+        if (tweet.threadHead) {
+            rootTweetId = tweet.threadHead;
+        } else if (tweet.parentTweet) {
+            let current = tweet;
+            while (current.parentTweet) {
+                const parent = await this.tweetRepository.getTweetById(current.parentTweet);
+                if (!parent) break;
+                current = parent;
+            }
+            rootTweetId = current._id;
+        }
+
+        const threadTweets = await this.tweetRepository.getThreadTweets(rootTweetId);
+        return {
+            rootTweetId,
+            threadLength: threadTweets.length,
+            tweets: threadTweets.length > 0 ? threadTweets : [tweet]
+        };
+    }
+
+    // Edit tweet with 30-minute grace window
+    async editTweet(tweetId, userId, data) {
+        const tweet = await this.tweetRepository.getTweetById(tweetId);
+        if (!tweet) {
+            throw new Error('Tweet not found');
+        }
+
+        const authorId = tweet.author && tweet.author._id ? tweet.author._id.toString() : tweet.author.toString();
+        if (authorId !== userId.toString()) {
+            throw new Error('Unauthorized: only the author can edit this tweet');
+        }
+
+        if (!data.content || data.content.trim() === '') {
+            throw new Error('Tweet content cannot be empty');
+        }
+
+        // Check 30-minute grace period
+        const now = new Date();
+        const createdAt = new Date(tweet.createdAt);
+        const diffInMinutes = (now.getTime() - createdAt.getTime()) / (1000 * 60);
+
+        if (diffInMinutes > 30) {
+            throw new Error('Editing grace window (30 minutes) has expired. Tweets cannot be edited after 30 minutes of creation.');
+        }
+
+        const previousContent = tweet.content;
+        const previousMedia = tweet.media;
+        const newContent = data.content.trim();
+
+        const updatedTweet = await this.tweetRepository.editTweet(tweetId, {
+            content: newContent,
+            media: data.media !== undefined ? data.media : tweet.media,
+            previousContent,
+            previousMedia
+        });
+
+        // Re-extract and index hashtags
+        const tags = newContent.match(/(#[a-zA-Z0-9_]+)/g);
+        if (tags && tags.length > 0) {
+            await this.hashService.processHashtagsFromTweet(tags, tweetId);
+        }
+
+        // Re-extract mentions and publish MENTION events for new mentions
+        const oldMentions = new Set((previousContent.match(/@([a-zA-Z0-9_]+)/g) || []).map(m => m.replace('@', '').trim()));
+        const newMentions = (newContent.match(/@([a-zA-Z0-9_]+)/g) || []).map(m => m.replace('@', '').trim());
+
+        for (let userName of newMentions) {
+            if (!oldMentions.has(userName)) {
+                const mentionedUser = await this.userRepository.getUserByUsername(userName);
+                if (mentionedUser && mentionedUser._id.toString() !== userId.toString()) {
+                    await publishEvent({
+                        user: mentionedUser._id.toString(),
+                        actor: userId.toString(),
+                        type: "MENTION",
+                        entityId: tweetId.toString()
+                    });
+                }
+            }
+        }
+
+        return updatedTweet;
     }
 }
 

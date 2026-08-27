@@ -4,7 +4,7 @@
 [![Express](https://img.shields.io/badge/Express-4.x-black.svg?logo=express)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-6.0+-brightgreen.svg?logo=mongodb)](https://www.mongodb.com/)
 [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-AMQP-orange.svg?logo=rabbitmq)](https://www.rabbitmq.com/)
-[![Tests](https://img.shields.io/badge/Tests-129%20Passing%20(100%25)-success.svg)](https://github.com/krishu2814/Twitter-Modular-Monolith)
+[![Tests](https://img.shields.io/badge/Tests-114%20Passing%20(100%25)-success.svg)](https://github.com/krishu2814/Twitter-Modular-Monolith)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 A production-grade, event-driven **Twitter backend** engineered as a **Modular Monolith** using **Node.js**, **Express**, **MongoDB (ACID Transactions)**, and **RabbitMQ (AMQP Message Broker)**.
@@ -50,8 +50,10 @@ A production-grade, event-driven **Twitter backend** engineered as a **Modular M
 * **Multi-Document ACID Transactions**: Distributed concurrency control for Follows, Likes, Retweets, Bookmarks, and Mutual Block Severing via `mongoose.startSession()`.
 * **Event-Driven Asynchronous Processing**: Decoupled message broker via **RabbitMQ** for 6 event types (`LIKE`, `RETWEET`, `FOLLOW`, `COMMENT`, `MENTION`, `MESSAGE`) with dedicated worker consumers.
 * **Graph-Based Social Discovery**: 2nd-degree network recommendation algorithm (*"Who to Follow"*) ranking candidates by mutual connections with popularity backfills.
+* **Multi-Tweet Threads & Chain Traversal**: Atomic publishing of 2–10 linked tweets in a single transaction with parent-child pointer chain indexing and sequential traversal from any thread node.
+* **Tweet Editing & Grace Window**: 30-minute server-enforced edit window with complete historical content snapshot preservation (`editHistory: [...]`) and dynamic hashtag/mention re-indexing.
 * **Curated Multi-Timeline Feeds**:
-  * **Home Feed**: Fan-out timeline aggregating tweets and quote tweets with stealth mute & block suppression.
+  * **Home Feed**: Fan-out timeline aggregating tweets and thread roots with stealth mute & block suppression.
   * **Verified Feed**: Filtered timeline exclusively showcasing tweets by verified creators (`isVerified: true`).
   * **List Feed**: Dedicated feeds composed strictly of selected list members.
 * **Scheduled Tweets & Auto-Publisher**: Future tweet scheduling engine with automated background execution to live feeds.
@@ -63,13 +65,13 @@ A production-grade, event-driven **Twitter backend** engineered as a **Modular M
 
 ---
 
-## 📦 Domain Modules (16 Distinct Modules)
+## 📦 Domain Modules (18 Distinct Modules)
 
 | Module | Responsibilities |
 |---|---|
 | **Auth** | User registration, bcrypt password hashing, JWT token authentication, login validation |
 | **User** | User profile fetching, bio updates, verification badges (`BLUE`/`GOLD`/`OFFICIAL`), graph recommendations |
-| **Tweet** | Tweet creation, polls, quote tweets, hashtags & mentions extraction, pinning, impressions analytics |
+| **Tweet** | Tweet creation, multi-tweet threads (2-10 chain), 30-min edit grace window, polls, quotes, pinning, impressions analytics |
 | **Like** | Toggle tweet likes with ACID transaction + RabbitMQ `LIKE` event notification |
 | **Retweet** | Toggle retweets with ACID transaction + RabbitMQ `RETWEET` event notification |
 | **Bookmark** | Private tweet bookmarks with ACID transaction, saved list, and custom Folders/Collections |
@@ -88,7 +90,7 @@ A production-grade, event-driven **Twitter backend** engineered as a **Modular M
 
 ---
 
-## 📡 API Reference (45+ Endpoints)
+## 📡 API Reference (48+ Endpoints)
 
 ### 🔐 Authentication & Users
 * `POST /api/v1/auth/signup` — Register a new account (`userName`, `email`, `password`)
@@ -100,8 +102,11 @@ A production-grade, event-driven **Twitter backend** engineered as a **Modular M
 * `PATCH /api/v1/users/:id` — Update bio/profile (Authorized)
 * `DELETE /api/v1/users/:id` — Delete user account (Authorized)
 
-### ✍️ Tweets, Quotes, Polls & Analytics
+### ✍️ Tweets, Multi-Tweet Threads, Quotes, Polls & Analytics
 * `POST /api/v1/tweets/create` — Post a new tweet (Supports `#hashtags`, `@mentions`, `media: []`, `quoteTweet: "id"` & `poll: { options: [] }`)
+* `POST /api/v1/tweets/thread` — Publish a multi-tweet thread atomically (2–10 connected tweets, transaction-protected)
+* `GET /api/v1/tweets/:id/thread` — Fetch the complete parent-to-child conversational chain ordered sequentially
+* `PATCH /api/v1/tweets/:id/edit` — Edit tweet content & media within 30-minute grace window (Preserves `editHistory` audit trail)
 * `GET /api/v1/tweets/get/:id` — Get single tweet with author, quoted tweet, and poll details
 * `GET /api/v1/tweets/get` — Get all tweets
 * `GET /api/v1/tweets/user/:userId` — Get tweets authored by a specific user (Includes `pinnedTweet`)
@@ -292,16 +297,16 @@ npm start
 
 ## 🧪 Automated Testing
 
-Execute the comprehensive end-to-end integration test suite (**129 assertions across 25 domain suites**):
+Execute the comprehensive end-to-end integration test suite (**114 assertions across 18 distinct domain suites**):
 
 ```bash
-node scratch/run-tests.js
+npm test
 ```
 
 ```text
-========================================
-📊 TEST RESULTS: 129 PASSED, 0 FAILED (100% SUCCESS)
-========================================
+================================================================
+📊 FINAL TEST REPORT: 114 PASSED, 0 FAILED (100% SUCCESS)
+================================================================
 ```
 
 ---
