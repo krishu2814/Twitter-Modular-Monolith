@@ -1,5 +1,7 @@
 const { getChannel } = require('../../utils/message-queue');
 const NotificationService = require('./notification-service');
+const Notification = require('./notification-model');
+const { emitToUser } = require('../../utils/socket-server');
 const { RABBITMQ_EXCHANGE, RABBITMQ_QUEUE, RABBITMQ_ROUTING_KEY } = require('../../config/serverConfig');
 
 class NotificationConsumer {
@@ -28,12 +30,25 @@ class NotificationConsumer {
                         // log the type of notification received for debugging
                         const notificationData = JSON.parse(messageContent);
                         console.log(`${notificationData.type} notification received`);
-                        
-                        // Simulate a delay to see the notification in RabbitMQ
-                        // await new Promise(resolve => setTimeout(resolve, 1000));
 
                         // create the notification in the database using the notification service
-                        await this.notificationService.createNotification(notificationData);
+                        const createdNotification = await this.notificationService.createNotification(notificationData);
+
+                        // Push real-time notification to user's WebSocket room
+                        try {
+                            const [populatedNotif, unreadCount] = await Promise.all([
+                                Notification.findById(createdNotification._id).populate('actor', 'userName profileImage').lean(),
+                                Notification.countDocuments({ user: notificationData.user, isRead: false })
+                            ]);
+
+                            emitToUser(notificationData.user.toString(), 'notification:received', {
+                                notification: populatedNotif || createdNotification,
+                                unreadCount
+                            });
+                        } catch (socketErr) {
+                            console.error('❌ Failed to emit real-time notification socket event:', socketErr.message);
+                        }
+
                     } catch (err) {
                         console.error('❌ Error processing notification:', err);
                     } finally {

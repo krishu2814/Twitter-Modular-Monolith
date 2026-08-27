@@ -120,6 +120,13 @@ class MessageRepository {
         );
     }
 
+    // 6) get message by id populated
+    async getMessageById(messageId) {
+        return await Message.findById(messageId)
+            .populate('sender', 'userName profileImage')
+            .populate('receiver', 'userName profileImage');
+    }
+
 }
 
 module.exports = MessageRepository;

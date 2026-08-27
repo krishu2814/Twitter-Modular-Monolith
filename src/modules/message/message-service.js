@@ -2,6 +2,7 @@ const MessageRepository = require('./message-repository');
 const UserRepository = require('../user/user-repository');
 const BlockRepository = require('../block/block-repository');
 const { publishEvent } = require('../../utils/producer');
+const { emitToUser } = require('../../utils/socket-server');
 
 class MessageService {
     constructor() {
@@ -48,6 +49,15 @@ class MessageService {
             entityId: message._id.toString()
         });
 
+        // Emit real-time WebSocket events to receiver & sender
+        try {
+            const populatedMsg = await this.messageRepository.getMessageById(message._id) || message;
+            emitToUser(receiverId.toString(), 'message:received', populatedMsg);
+            emitToUser(senderId.toString(), 'message:sent', populatedMsg);
+        } catch (socketErr) {
+            console.error('❌ Failed to emit real-time message socket event:', socketErr.message);
+        }
+
         return message;
     }
 
@@ -85,6 +95,21 @@ class MessageService {
         if (!message) {
             throw new Error("Message not found or unauthorized");
         }
+
+        // Emit real-time read receipt to message sender
+        try {
+            if (message.sender) {
+                const senderId = message.sender._id ? message.sender._id.toString() : message.sender.toString();
+                emitToUser(senderId, 'message:read_receipt', {
+                    messageId: message._id.toString(),
+                    readBy: userId.toString(),
+                    readAt: new Date()
+                });
+            }
+        } catch (receiptErr) {
+            console.error('❌ Failed to emit read receipt event:', receiptErr.message);
+        }
+
         return message;
     }
 }

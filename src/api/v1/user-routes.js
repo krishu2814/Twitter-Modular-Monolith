@@ -22,6 +22,9 @@ router.get('/recommendations/who-to-follow', authentication, userController.getW
 // get user by id
 router.get('/:id', authentication, userController.get.bind(userController));
 
+// get user presence
+router.get('/:id/presence', authentication, userController.getPresence.bind(userController));
+
 // verify user
 router.patch('/:id/verify', authentication, userController.verifyUser.bind(userController));
 

@@ -103,6 +103,22 @@ class UserRepository {
             .select('userName profileImage bio followersCount followingCount isVerified badgeType');
     }
 
+    async updateUserPresence(userId, isOnline) {
+        const updateData = { isOnline };
+        if (!isOnline) {
+            updateData.lastSeen = new Date();
+        }
+        return await User.findByIdAndUpdate(
+            userId,
+            updateData,
+            { returnDocument: 'after' }
+        ).select('userName isOnline lastSeen');
+    }
+
+    async getUserPresence(userId) {
+        return await User.findById(userId).select('userName isOnline lastSeen');
+    }
+
 }
 
 module.exports = UserRepository;

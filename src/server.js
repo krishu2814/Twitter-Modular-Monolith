@@ -1,6 +1,8 @@
+const http = require('http');
 const { PORT } = require('./config/serverConfig');
 const connectDB = require('./config/database');
 const { connectQueue } = require('./utils/message-queue');
+const { initSocket } = require('./utils/socket-server');
 const NotificationConsumer = require('./modules/notification/notification-consumer');
 const app = require('./app');
 
@@ -18,8 +20,13 @@ const setUpAndStartServer = async() => {
     await consumer.start();
     console.log('✅ Notification Consumer Started');
 
-    // 4) Start the HTTP Server
-    app.listen(PORT, () => {
+    // 4) Create HTTP Server & Bind Socket.io
+    const httpServer = http.createServer(app);
+    initSocket(httpServer);
+    console.log('✅ Socket.io WebSocket Gateway Initialized');
+
+    // 5) Start listening
+    httpServer.listen(PORT, () => {
         console.log(`Server is listening on the port ${PORT}`);
     });
 }

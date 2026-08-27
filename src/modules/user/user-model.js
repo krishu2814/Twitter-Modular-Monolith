@@ -50,6 +50,16 @@ const userSchema = new mongoose.Schema({
       type: String,
       enum: ['NONE', 'BLUE', 'GOLD', 'OFFICIAL'],
       default: 'NONE'
+    },
+
+    isOnline: {
+      type: Boolean,
+      default: false
+    },
+
+    lastSeen: {
+      type: Date,
+      default: Date.now
     }
 },
     { timestamps: true } // created at , updated at

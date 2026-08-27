@@ -93,6 +93,18 @@ class UserService {
 
         return results;
     }
+
+    async updateUserPresence(id, isOnline) {
+        return await this.userRepository.updateUserPresence(id, isOnline);
+    }
+
+    async getUserPresence(id) {
+        const user = await this.userRepository.getUserPresence(id);
+        if (!user) {
+            throw new Error('User not found');
+        }
+        return user;
+    }
 }
 
 module.exports = UserService;

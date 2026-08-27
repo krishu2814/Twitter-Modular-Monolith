@@ -181,6 +181,26 @@ class UserController {
             });
         }
     }
+
+    // GET /api/v1/users/:id/presence
+    async getPresence(req, res) {
+        try {
+            const presence = await this.userService.getUserPresence(req.params.id);
+            return res.status(200).json({
+                status: "success",
+                message: "User presence fetched successfully.",
+                data: presence,
+                err: {}
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: "error",
+                message: error.message || "Something went wrong while fetching user presence.",
+                data: {},
+                err: error
+            });
+        }
+    }
 }
 
 module.exports = UserController;
